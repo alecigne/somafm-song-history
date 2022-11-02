@@ -1,1 +1,38 @@
 #+title: =somafm-song-history=
+
+Command line application that retrieves and prints SomaFM's song
+history in the console. This is a first step towards building a real
+database of broadcasts.
+
+* Usage
+:PROPERTIES:
+:CREATED:  [2022-11-02 Wed 19:00]
+:END:
+
+#+begin_src sh
+  java -jar somafm-song-history-0.1.0-jar-with-dependencies.jar "Beat Blender"
+#+end_src
+
+Without a channel, the program will default to Drone Zone.
+
+* Known bugs
+:PROPERTIES:
+:CREATED:  [2022-06-26 Sun 18:38]
+:END:
+
+- On the day of transition from daylight saving time (DST) to standard
+  time, ambiguous local time values exist between 1:00 AM and 2:00 AM
+  since this hour happens "twice" locally. As SomaFM's "song history"
+  webpage display local times only (example [[https://somafm.com/recent/dronezone.html][here]]), computing a correct
+  UTC broadcast time during this period becomes annoying
+  (e.g. deciding between DST and standard time for two tracks played
+  at 01:30 AM).
+
+  For the sake of simplicity, all broadcasts during this period are
+  thus listed as being played in the DST timezone (one time correctly,
+  and another time incorrectly during the "second 01:00 AM
+  hour"). This will create a "void" of one hour in a UTC timeline.
+
+  Example: on 2021-11-07 at 01:00 AM #1 in Los Angeles, it was
+  2021-11-07 08:00 AM UTC. On 01:00 AM #2, it was 2021-11-07 09:00 AM
+  UTC. However, no broadcasts will exist at this UTC hour.
