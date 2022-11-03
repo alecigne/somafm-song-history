@@ -7,4 +7,5 @@ import net.lecigne.somafm.model.Channel;
 
 public interface BroadcastRepository {
   Set<Broadcast> getRecentBroadcasts(Channel channel) throws IOException;
+  void updateBroadcasts(Set<Broadcast> broadcasts);
 }

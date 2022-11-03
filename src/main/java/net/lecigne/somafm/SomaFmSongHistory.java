@@ -1,15 +1,18 @@
 package net.lecigne.somafm;
 
-import static net.lecigne.somafm.config.Configuration.ROOT_CONFIG;
-import static net.lecigne.somafm.model.Channel.DRONE_ZONE;
+import static net.lecigne.somafm.config.SomaFmConfig.ROOT_CONFIG;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigBeanFactory;
 import com.typesafe.config.ConfigFactory;
 import java.time.ZoneId;
+import lombok.extern.slf4j.Slf4j;
 import net.lecigne.somafm.business.RecentBroadcastBusiness;
-import net.lecigne.somafm.config.Configuration;
+import net.lecigne.somafm.cli.CLI;
+import net.lecigne.somafm.config.SomaFmConfig;
+import org.flywaydb.core.Flyway;
 
+@Slf4j
 public class SomaFmSongHistory {
 
   /**
@@ -23,11 +26,21 @@ public class SomaFmSongHistory {
   public static final String BREAK_STATION_ID = "Break / Station ID";
 
   public static void main(String[] args) {
+    // Load config
     Config config = ConfigFactory.load();
-    Configuration configuration = ConfigBeanFactory.create(config.getConfig(ROOT_CONFIG), Configuration.class);
-    String defaultChannel = args.length != 0 ? args[0] : DRONE_ZONE.getPublicName();
-    RecentBroadcastBusiness business = RecentBroadcastBusiness.init(configuration);
-    business.displayRecentBroadcasts(defaultChannel);
+    SomaFmConfig somaFmConfig = ConfigBeanFactory.create(config.getConfig(ROOT_CONFIG), SomaFmConfig.class);
+
+    // Prepare database
+    Flyway.configure()
+        .dataSource(somaFmConfig.getDbUrl(), somaFmConfig.getDbUser(), somaFmConfig.getDbPassword())
+        .load()
+        .migrate();
+
+    // Prepare business
+    RecentBroadcastBusiness business = RecentBroadcastBusiness.init(somaFmConfig);
+
+    // Run
+    new CLI(business).run(args);
   }
 
 }

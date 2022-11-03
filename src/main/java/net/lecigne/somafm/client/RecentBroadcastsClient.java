@@ -5,7 +5,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import net.lecigne.somafm.client.dto.BroadcastDto;
 import net.lecigne.somafm.client.dto.RecentBroadcastsDto;
-import net.lecigne.somafm.config.Configuration;
+import net.lecigne.somafm.config.SomaFmConfig;
 import net.lecigne.somafm.model.Channel;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
@@ -23,12 +23,12 @@ public class RecentBroadcastsClient {
     Response<ResponseBody> response = htmlBroadcastsClient.getHtml(channel.getInternalName()).execute();
     List<BroadcastDto> recentBroadcasts = htmlBroadcastsParser.parse(response.body().string());
     return RecentBroadcastsDto.builder()
-        .channel(channel.getInternalName())
+        .channel(channel)
         .recentBroadcasts(recentBroadcasts)
         .build();
   }
 
-  public static RecentBroadcastsClient init(Configuration config) {
+  public static RecentBroadcastsClient init(SomaFmConfig config) {
     return new RecentBroadcastsClient(HtmlBroadcastsClient.create(config), new HtmlBroadcastsParser());
   }
 

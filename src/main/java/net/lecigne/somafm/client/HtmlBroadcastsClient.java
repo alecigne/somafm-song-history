@@ -1,6 +1,6 @@
 package net.lecigne.somafm.client;
 
-import net.lecigne.somafm.config.Configuration;
+import net.lecigne.somafm.config.SomaFmConfig;
 import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -15,7 +15,7 @@ public interface HtmlBroadcastsClient {
   @GET("/recent/{channel}.html")
   Call<ResponseBody> getHtml(@Path("channel") String channel);
 
-  static HtmlBroadcastsClient create(Configuration config) {
+  static HtmlBroadcastsClient create(SomaFmConfig config) {
     return new Retrofit.Builder()
         .baseUrl(config.getSomaFmBaseUrl())
         .client(new OkHttpClient.Builder()

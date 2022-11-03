@@ -1,6 +1,7 @@
 package net.lecigne.somafm.model;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.function.Predicate;
 import lombok.Getter;
 
@@ -56,19 +57,18 @@ public enum Channel {
     this.publicName = publicName;
   }
 
-  public static Channel getByInternalName(String internalName) {
+  public static Optional<Channel> getByInternalName(String internalName) {
     return getBy(channel -> channel.internalName.equals(internalName));
   }
 
-  public static Channel getByPublicName(String publicName) {
+  public static Optional<Channel> getByPublicName(String publicName) {
     return getBy(channel -> channel.publicName.equals(publicName));
   }
 
-  private static Channel getBy(Predicate<Channel> predicate) {
+  private static Optional<Channel> getBy(Predicate<Channel> predicate) {
     return Arrays.stream(Channel.values())
         .filter(predicate)
-        .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("Unknown channel!"));
+        .findFirst();
   }
 
 }
