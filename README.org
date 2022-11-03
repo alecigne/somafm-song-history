@@ -10,7 +10,7 @@ database of broadcasts.
 :END:
 
 #+begin_src sh
-  java -jar somafm-song-history-0.1.0-jar-with-dependencies.jar "Beat Blender"
+  java -jar somafm-song-history-0.1.0.jar "Beat Blender"
 #+end_src
 
 Without a channel, the program will default to Drone Zone.
