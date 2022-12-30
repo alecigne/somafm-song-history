@@ -2,6 +2,7 @@ package net.lecigne.somafm.business;
 
 import static net.lecigne.somafm.business.BusinessAction.DISPLAY;
 import static net.lecigne.somafm.business.BusinessAction.SAVE;
+import static net.lecigne.somafm.model.Channel.DRONE_ZONE;
 
 import java.io.IOException;
 import java.time.ZoneId;
@@ -17,9 +18,12 @@ import net.lecigne.somafm.model.Broadcast;
 import net.lecigne.somafm.model.Channel;
 import net.lecigne.somafm.repository.BroadcastRepository;
 import net.lecigne.somafm.repository.DefaultBroadcastRepository;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 
 @Slf4j
-public class RecentBroadcastBusiness {
+public class RecentBroadcastBusiness implements Job {
 
   private final BroadcastRepository broadcastRepository;
   private final DisplayedBroadcastMapper displayedBroadcastMapper;
@@ -33,7 +37,12 @@ public class RecentBroadcastBusiness {
     this.strategies = Map.of(DISPLAY, displayRecentBroadcasts(), SAVE, saveRecentBroadcasts());
   }
 
-  public void handleRecentBroadcasts(BusinessAction action, Channel channel) {
+  @Override
+  public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+    handleRecentBroadcasts(SAVE, DRONE_ZONE);
+  }
+
+  private void handleRecentBroadcasts(BusinessAction action, Channel channel) {
     try {
       Set<Broadcast> recentBroadcasts = broadcastRepository.getRecentBroadcasts(channel);
       strategies.get(action).accept(recentBroadcasts);
