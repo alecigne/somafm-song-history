@@ -37,7 +37,9 @@ public class HtmlBroadcastsParser {
     if (BREAK_STATION_ID.equals(secondField)) {
       return BroadcastDto.builder()
           .time(localTime)
+          .artist("n/a")
           .title(secondField)
+          .album("n/a")
           .build();
     } else {
       var title = columns.get(2).text();
