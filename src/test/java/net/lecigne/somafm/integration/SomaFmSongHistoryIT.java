@@ -1,6 +1,5 @@
 package net.lecigne.somafm.integration;
 
-import static net.lecigne.somafm.SomaFmSongHistory.BROADCAST_LOCATION;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.io.Resources;
@@ -14,14 +13,12 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
 import net.lecigne.somafm.business.RecentBroadcastBusiness;
-import net.lecigne.somafm.cli.CLI;
 import net.lecigne.somafm.client.HtmlBroadcastsClient;
 import net.lecigne.somafm.client.HtmlBroadcastsParser;
 import net.lecigne.somafm.client.RecentBroadcastsClient;
 import net.lecigne.somafm.config.SomaFmConfig;
 import net.lecigne.somafm.fixtures.TestRepository;
 import net.lecigne.somafm.mappers.BroadcastMapper;
-import net.lecigne.somafm.mappers.DisplayedBroadcastMapper;
 import net.lecigne.somafm.model.Broadcast;
 import net.lecigne.somafm.model.Song;
 import net.lecigne.somafm.repository.BroadcastRepository;
@@ -44,7 +41,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 public class SomaFmSongHistoryIT {
 
   static MockWebServer mockWebServer;
-  private static CLI CLI;
+  private static RecentBroadcastBusiness business;
   private static TestRepository testRepository;
 
   @Rule
@@ -79,9 +76,8 @@ public class SomaFmSongHistoryIT {
     Clock clock = Clock.fixed(Instant.parse("2021-01-01T13:00:00.00Z"), ZoneId.of("Europe/Paris"));
     BroadcastRepository repository = new DefaultBroadcastRepository(recentBroadcastsClient, new BroadcastMapper(clock),
         hikariDataSource);
-    var business = new RecentBroadcastBusiness(repository, new DisplayedBroadcastMapper(BROADCAST_LOCATION));
+    business = new RecentBroadcastBusiness(repository);
     testRepository = new TestRepository(hikariDataSource);
-    CLI = new CLI(business);
   }
 
   @AfterEach
@@ -97,10 +93,10 @@ public class SomaFmSongHistoryIT {
   @Test
   void should_get_recent_broadcasts_and_persist_them_with_no_song_duplicates() throws IOException {
     // Given
-    String[] args = {"save", "Drone Zone"};
+    var channelName = "Drone Zone";
 
     // When
-    CLI.run(args);
+    business.handleRecentBroadcasts(channelName);
 
     // Then
     List<Broadcast> broadcasts = testRepository.readAllBroadcasts();

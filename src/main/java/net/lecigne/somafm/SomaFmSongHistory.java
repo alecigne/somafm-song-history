@@ -1,6 +1,9 @@
 package net.lecigne.somafm;
 
+import static java.time.temporal.ChronoUnit.MINUTES;
 import static net.lecigne.somafm.config.SomaFmConfig.ROOT_CONFIG;
+import static net.lecigne.somafm.job.SomaFmSongHistoryJob.BUSINESS_INSTANCE_KEY;
+import static net.lecigne.somafm.job.SomaFmSongHistoryJob.CHANNEL_KEY;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
@@ -12,6 +15,7 @@ import java.time.ZoneId;
 import lombok.extern.slf4j.Slf4j;
 import net.lecigne.somafm.business.RecentBroadcastBusiness;
 import net.lecigne.somafm.config.SomaFmConfig;
+import net.lecigne.somafm.job.SomaFmSongHistoryJob;
 import org.flywaydb.core.Flyway;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
@@ -34,6 +38,13 @@ public class SomaFmSongHistory {
   public static final String BREAK_STATION_ID = "Break / Station ID";
 
   public static void main(String[] args) throws SchedulerException {
+    // Args
+    if (args.length != 1) {
+      log.error("You must enter the channel's public name as an argument.");
+      return;
+    }
+    var channelName = args[0];
+
     // Load config
     Config config = ConfigFactory.load();
     SomaFmConfig somaFmConfig = ConfigBeanFactory.create(config.getConfig(ROOT_CONFIG), SomaFmConfig.class);
@@ -45,30 +56,22 @@ public class SomaFmSongHistory {
         .migrate();
 
     // Prepare business
-//    RecentBroadcastBusiness business = RecentBroadcastBusiness.init(somaFmConfig);
+    RecentBroadcastBusiness business = RecentBroadcastBusiness.init(somaFmConfig);
 
-    SchedulerFactory schedFact = new StdSchedulerFactory();
-
-    Scheduler sched = schedFact.getScheduler();
-
-    sched.start();
-
-    // define the job and tie it to our HelloJob class
-    JobDetail job = newJob(RecentBroadcastBusiness.class)
-        .withIdentity("myJob", "group1")
+    // Prepare scheduler
+    SchedulerFactory schedulerFactory = new StdSchedulerFactory();
+    Scheduler scheduler = schedulerFactory.getScheduler();
+    scheduler.start();
+    scheduler.getContext().put(BUSINESS_INSTANCE_KEY, business);
+    JobDetail job = newJob(SomaFmSongHistoryJob.class)
+        .usingJobData(CHANNEL_KEY, channelName)
         .build();
-
-    // Trigger the job to run now, and then every 40 seconds
+    int intervalInMinutes = (int) somaFmConfig.getInterval().toMinutes();
     Trigger trigger = newTrigger()
-        .withIdentity("myTrigger", "group1")
         .startNow()
-        .withSchedule(simpleSchedule()
-            .withIntervalInSeconds(40)
-            .repeatForever())
+        .withSchedule(simpleSchedule().withIntervalInMinutes(intervalInMinutes).repeatForever())
         .build();
-
-    // Tell quartz to schedule the job using our trigger
-    sched.scheduleJob(job, trigger);
+    scheduler.scheduleJob(job, trigger);
   }
 
 }
