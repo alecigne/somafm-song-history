@@ -1,5 +1,8 @@
 package net.lecigne.somafm.integration;
 
+import static net.lecigne.somafm.SomaFmSongHistory.BROADCAST_LOCATION;
+import static net.lecigne.somafm.business.BusinessAction.SAVE;
+import static net.lecigne.somafm.model.Channel.DRONE_ZONE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.io.Resources;
@@ -19,6 +22,7 @@ import net.lecigne.somafm.client.RecentBroadcastsClient;
 import net.lecigne.somafm.config.SomaFmConfig;
 import net.lecigne.somafm.fixtures.TestRepository;
 import net.lecigne.somafm.mappers.BroadcastMapper;
+import net.lecigne.somafm.mappers.DisplayedBroadcastMapper;
 import net.lecigne.somafm.model.Broadcast;
 import net.lecigne.somafm.model.Song;
 import net.lecigne.somafm.repository.BroadcastRepository;
@@ -76,7 +80,7 @@ public class SomaFmSongHistoryIT {
     Clock clock = Clock.fixed(Instant.parse("2021-01-01T13:00:00.00Z"), ZoneId.of("Europe/Paris"));
     BroadcastRepository repository = new DefaultBroadcastRepository(recentBroadcastsClient, new BroadcastMapper(clock),
         hikariDataSource);
-    business = new RecentBroadcastBusiness(repository);
+    business = new RecentBroadcastBusiness(repository, new DisplayedBroadcastMapper(BROADCAST_LOCATION));
     testRepository = new TestRepository(hikariDataSource);
   }
 
@@ -92,11 +96,8 @@ public class SomaFmSongHistoryIT {
 
   @Test
   void should_get_recent_broadcasts_and_persist_them_with_no_song_duplicates() throws IOException {
-    // Given
-    var channelName = "Drone Zone";
-
     // When
-    business.handleRecentBroadcasts(channelName);
+    business.handleRecentBroadcasts(SAVE, DRONE_ZONE);
 
     // Then
     List<Broadcast> broadcasts = testRepository.readAllBroadcasts();

@@ -1,7 +1,7 @@
 package net.lecigne.somafm;
 
-import static java.time.temporal.ChronoUnit.MINUTES;
 import static net.lecigne.somafm.config.SomaFmConfig.ROOT_CONFIG;
+import static net.lecigne.somafm.job.SomaFmSongHistoryJob.ACTION_KEY;
 import static net.lecigne.somafm.job.SomaFmSongHistoryJob.BUSINESS_INSTANCE_KEY;
 import static net.lecigne.somafm.job.SomaFmSongHistoryJob.CHANNEL_KEY;
 import static org.quartz.JobBuilder.newJob;
@@ -12,10 +12,13 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigBeanFactory;
 import com.typesafe.config.ConfigFactory;
 import java.time.ZoneId;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import net.lecigne.somafm.business.BusinessAction;
 import net.lecigne.somafm.business.RecentBroadcastBusiness;
 import net.lecigne.somafm.config.SomaFmConfig;
 import net.lecigne.somafm.job.SomaFmSongHistoryJob;
+import net.lecigne.somafm.model.Channel;
 import org.flywaydb.core.Flyway;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
@@ -39,11 +42,12 @@ public class SomaFmSongHistory {
 
   public static void main(String[] args) throws SchedulerException {
     // Args
-    if (args.length != 1) {
+    if (args.length != 2) {
       log.error("You must enter the channel's public name as an argument.");
       return;
     }
-    var channelName = args[0];
+    var actionName = args[0];
+    var channelName = args[1];
 
     // Load config
     Config config = ConfigFactory.load();
@@ -63,9 +67,15 @@ public class SomaFmSongHistory {
     Scheduler scheduler = schedulerFactory.getScheduler();
     scheduler.start();
     scheduler.getContext().put(BUSINESS_INSTANCE_KEY, business);
+
     JobDetail job = newJob(SomaFmSongHistoryJob.class)
         .usingJobData(CHANNEL_KEY, channelName)
         .build();
+
+    Channel channel = Channel.getByPublicName(channelName).orElseThrow();
+    job.getJobDataMap().put(CHANNEL_KEY, channel);
+    job.getJobDataMap().put(ACTION_KEY, BusinessAction.getValue(actionName));
+
     int intervalInMinutes = (int) somaFmConfig.getInterval().toMinutes();
     Trigger trigger = newTrigger()
         .startNow()
