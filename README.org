@@ -46,40 +46,61 @@ Goals for v0.3:
 :CREATED:  [2022-12-30 Fri 11:49]
 :END:
 
-1. You will need a PostgreSQL database running. This can be achieved
-   using Docker and the PostgreSQL official image:
+Two arguments must be provided to the application: an /action/
+(=display= or =save=) and a /channel/ (e.g. =Groove Salad=). The
+channel name is its public name, available on [[https://somafm.com/#alpha][this page]].
 
-  #+begin_src sh
-    docker run \
-           --name postgres-db \
-           -e POSTGRES_PASSWORD=mysecretpassword \
-           -p 5432:5432 \
-           -d postgres
-  #+end_src
+*** Setting up a database
+:PROPERTIES:
+:CREATED:  [2022-12-30 Fri 15:53]
+:END:
 
-  The default user is =postgres=.
+You will need a PostgreSQL database running. This can be achieved
+using Docker and the PostgreSQL official image:
 
-2. Either download the provided image (TODO) or build it:
+#+begin_src sh
+  docker run \
+         --name postgres-db \
+         -e POSTGRES_PASSWORD=mysecretpassword \
+         -p 5432:5432 \
+         -d postgres
+#+end_src
 
-  #+begin_src sh
-    docker image build -t somafm-song-history .
-  #+end_src
+The default user is =postgres=.
 
-3. Run the corresponding container with your credentials of choice:
+*** Option 1: Docker
+:PROPERTIES:
+:CREATED:  [2022-12-30 Fri 15:54]
+:END:
 
-  #+begin_src sh
-    docker run \
-           -e DB_URL="jdbc:postgresql://localhost:5432/postgres" \
-           -e DB_USER="postgres" \
-           -e DB_PASSWORD="mysecretpassword" \
-           --net=host \
-           somafm-song-history "display" "Drone Zone"
-  #+end_src
+Run the container with your credentials of choice:
 
-Two arguments must be provided: an /action/ (=display= or =save=) and
-a /channel/ (e.g. =Groove Salad=). The channel name is its public
-name, available on [[https://somafm.com/#alpha][this page]]. Without a channel, the program will
-default to Drone Zone.
+#+begin_src sh
+  docker run \
+         -e DB_URL="jdbc:postgresql://localhost:5432/postgres" \
+         -e DB_USER="postgres" \
+         -e DB_PASSWORD="mysecretpassword" \
+         --net=host \
+         alecigne/somafm-song-history "display" "Drone Zone"
+#+end_src
+
+The Docker image is hosted on [[https://hub.docker.com/repository/docker/alecigne/somafm-song-history][DockerHub]].
+
+*** Option 2: Jar file
+:PROPERTIES:
+:CREATED:  [2022-12-30 Fri 15:53]
+:END:
+
+[[https://github.com/alecigne/somafm-song-history/releases/download/0.2.0/somafm-song-history-0.2.0.jar][Download the Jar]] (or build it from source), then run:
+
+#+begin_src sh
+  DB_URL="jdbc:postgresql://localhost:5432/postgres" \
+  DB_USER="postgres" \
+  DB_PASSWORD="mysecretpassword" \
+  java -jar somafm-song-history-0.2.0.jar "display" "Drone Zone"
+#+end_src
+
+(with Java 17)
 
 ** v0.1
 :PROPERTIES:
