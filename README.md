@@ -1,39 +1,72 @@
 # `somafm-song-history`
 
-Application that retrieves and prints [SomaFM](https://somafm.com)'s recently played songs in the
-console, or save it to a database.
+Application that retrieves and prints [SomaFM][1]'s recently played songs in the console, or save it
+to a database.
 
-Please support SomaFM's awesome work [here](https://somafm.com/support/).
+Please support SomaFM's awesome work [here][2].
 
 # About
 
 This project is developed for my personal use, but I'll be glad to help if you encounter
-any [issue](https://github.com/alecigne/somafm-song-history/issues).
+any [issue][3].
 
 My goal is to build and browse a personal database of songs played by SomaFM, and as an ambient fan,
 especially Drone Zone.
 
-As stated on [this page](https://somafm.com/linktous/api.html):
+As stated on [this page][4]:
 
 > SomaFM API is no longer available to third parties
 
-Thus this application works by parsing SomaFM's "Recently Played Songs" page
-(example [here](https://somafm.com/dronezone/songhistory.html)).
+Thus this application works by parsing SomaFM's "Recently Played Songs" page (example [here][5]).
 
 # Usage
 
 Two arguments must be provided to the application: an *action* (`display` or `save`) and a
 *channel* (e.g. `Groove Salad`). The channel name is its public name, available
-on [this page](https://somafm.com/#alpha).
+on [this page][6].
 
-## Setting up a database
+## `display` mode
 
-You will need a PostgreSQL database running. This can be achieved using Docker and the PostgreSQL
-official image:
+### Configuration file
+
+Prepare a configuration file in [HOCON][7] format:
+
+``` hocon
+config {
+  somaFmBaseUrl = "https://somafm.com/"
+  userAgent = "choose-a-user-agent"
+  timezone = "choose-a-timezone"
+}
+```
+
+### Option 1: Docker
+
+Run a container with the latest image:
+
+``` shell
+docker run -it -v /absolute/path/to/application.conf:/application.conf alecigne/somafm-song-history "display" "Drone Zone"
+```
+
+The Docker image is hosted on [DockerHub][8].
+
+### Option 2: Jar file
+
+[Download the jar][9] (or build it from source), then run:
+
+``` shell
+java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "display" "Drone Zone"
+```
+
+## `save` mode
+
+### Database
+
+If you use `save` mode, you will need a PostgreSQL database. This can be achieved using Docker and
+the PostgreSQL official image:
 
 ``` shell
 docker run \
---name postgres-db \
+--name somafm-song-history-db \
 -e POSTGRES_PASSWORD=mysecretpassword \
 -p 5432:5432 \
 -d postgres
@@ -41,36 +74,65 @@ docker run \
 
 The default user is `postgres`.
 
-## Option 1: Docker
+### Configuration file
+
+Prepare a configuration file in [HOCON][7] format:
+
+``` hocon
+config {
+  somaFmBaseUrl = "https://somafm.com/"
+  userAgent = "choose-a-user-agent"
+  timezone = "choose-a-timezone"
+  db {
+    url = "jdbc:postgresql://localhost:5432/postgres"
+    user = "postgres"
+    password = "mysecretpassword"
+  }
+}
+```
+
+### Option 1: Docker
 
 Run the container with your credentials of choice:
 
 ``` shell
-docker run \
--e DB_URL="jdbc:postgresql://localhost:5432/postgres" \
--e DB_USER="postgres" \
--e DB_PASSWORD="mysecretpassword" \
---net=host \
-alecigne/somafm-song-history "display" "Drone Zone"
+docker run -it -v /absolute/path/to/application.conf:/application.conf --net=host alecigne/somafm-song-history "display" "Drone Zone"
 ```
 
-The Docker image is hosted
-on [DockerHub](https://hub.docker.com/r/alecigne/somafm-song-history).
+Note the `--net=host` option.
+
+The Docker image is hosted on [DockerHub][8].
 
 ## Option 2: Jar file
 
-[Download the jar](https://github.com/alecigne/somafm-song-history/releases/download/0.2.0/somafm-song-history-0.2.0.jar)
-or build it from source), then run:
+[Download the jar][9] (or build it from source), then run:
 
 ``` shell
-DB_URL="jdbc:postgresql://localhost:5432/postgres" \
-DB_USER="postgres" \
-DB_PASSWORD="mysecretpassword" \
-java -jar somafm-song-history-0.2.0.jar "display" "Drone Zone"
+java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "display" "Drone Zone"
 ```
 
 (with Java 17)
 
 # Known bugs
 
-Check them [here](https://github.com/alecigne/somafm-song-history/issues?q=is%3Aopen+is%3Aissue+label%3Abug).
+Check them [here][10].
+
+[1]: https://somafm.com
+
+[2]: https://somafm.com/support/
+
+[3]: https://github.com/alecigne/somafm-song-history/issues
+
+[4]: https://somafm.com/linktous/api.html
+
+[5]: https://somafm.com/dronezone/songhistory.html
+
+[6]: https://somafm.com/#alpha
+
+[7]: https://github.com/lightbend/config/blob/main/HOCON.md
+
+[8]: https://hub.docker.com/r/alecigne/somafm-song-history
+
+[9]: https://github.com/alecigne/somafm-song-history/releases/download/0.2.0/somafm-song-history-0.2.0.jar
+
+[10]: https://github.com/alecigne/somafm-song-history/issues?q=is%3Aopen+is%3Aissue+label%3Abug

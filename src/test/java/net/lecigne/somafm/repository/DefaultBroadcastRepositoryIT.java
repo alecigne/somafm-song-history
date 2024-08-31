@@ -30,7 +30,6 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.flywaydb.core.Flyway;
-import org.junit.Rule;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -47,8 +46,9 @@ class DefaultBroadcastRepositoryIT {
   private static BroadcastRepository repository;
   private static TestRepository testRepository;
 
-  @Rule
-  public static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres");
+  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+      "postgres:16-alpine"
+  );
 
   @BeforeAll
   static void beforeAll() throws IOException {
@@ -71,9 +71,10 @@ class DefaultBroadcastRepositoryIT {
         .migrate();
 
     // Application
-    SomaFmConfig configuration = new SomaFmConfig();
+    var configuration = new SomaFmConfig();
     configuration.setSomaFmBaseUrl(mockWebServer.url("/").toString());
     configuration.setUserAgent("UA");
+    configuration.setTimezone("Europe/Paris");
     HtmlBroadcastsClient htmlClient = HtmlBroadcastsClient.create(configuration);
     var recentBroadcastsClient = new RecentBroadcastsClient(htmlClient, new HtmlBroadcastsParser());
     Clock clock = Clock.fixed(Instant.parse("2021-01-01T13:00:00.00Z"), ZoneId.of("Europe/Paris"));

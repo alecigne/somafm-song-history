@@ -31,24 +31,26 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.flywaydb.core.Flyway;
-import org.junit.Rule;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 // TODO [persist-recent-broadcasts] Mutualize resources between this test and DefaultBroadcastRepositoryIT
 @DisplayName("The application")
-public class SomaFmSongHistoryIT {
+@Testcontainers
+class SomaFmSongHistoryIT {
 
   static MockWebServer mockWebServer;
-  private static CLI CLI;
+  private static CLI cli;
   private static TestRepository testRepository;
 
-  @Rule
-  public static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres");
+  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+      "postgres:16-alpine"
+  );
 
   @BeforeAll
   static void beforeAll() throws IOException {
@@ -71,17 +73,18 @@ public class SomaFmSongHistoryIT {
         .migrate();
 
     // Application
-    SomaFmConfig configuration = new SomaFmConfig();
-    configuration.setSomaFmBaseUrl(mockWebServer.url("/").toString());
-    configuration.setUserAgent("UA");
-    HtmlBroadcastsClient htmlClient = HtmlBroadcastsClient.create(configuration);
+    var config = new SomaFmConfig();
+    config.setSomaFmBaseUrl(mockWebServer.url("/").toString());
+    config.setUserAgent("UA");
+    config.setTimezone("Europe/Paris");
+    HtmlBroadcastsClient htmlClient = HtmlBroadcastsClient.create(config);
     var recentBroadcastsClient = new RecentBroadcastsClient(htmlClient, new HtmlBroadcastsParser());
     Clock clock = Clock.fixed(Instant.parse("2021-01-01T13:00:00.00Z"), ZoneId.of("Europe/Paris"));
     BroadcastRepository repository = new DefaultBroadcastRepository(recentBroadcastsClient, new BroadcastMapper(clock),
         hikariDataSource);
     var business = new RecentBroadcastBusiness(repository, new DisplayedBroadcastMapper(BROADCAST_LOCATION));
     testRepository = new TestRepository(hikariDataSource);
-    CLI = new CLI(business);
+    cli = new CLI(business);
   }
 
   @AfterEach
@@ -100,7 +103,7 @@ public class SomaFmSongHistoryIT {
     String[] args = {"save", "Drone Zone"};
 
     // When
-    CLI.run(args);
+    cli.run(args);
 
     // Then
     List<Broadcast> broadcasts = testRepository.readAllBroadcasts();

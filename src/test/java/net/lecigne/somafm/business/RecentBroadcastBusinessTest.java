@@ -66,7 +66,7 @@ class RecentBroadcastBusinessTest {
       String actual = tapSystemOut(statement).replaceAll("[\\r\\n]", "");
 
       // Then
-      assertThat(actual).isEqualTo(expected);
+      assertThat(actual).contains(expected);
     }
 
     @Test

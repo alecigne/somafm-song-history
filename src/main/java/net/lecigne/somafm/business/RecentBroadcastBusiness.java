@@ -35,6 +35,7 @@ public class RecentBroadcastBusiness {
 
   public void handleRecentBroadcasts(BusinessAction action, Channel channel) {
     try {
+      log.info("Handling recent broadcasts: {} mode on channel {}", action.getActionName(), channel.getPublicName());
       Set<Broadcast> recentBroadcasts = broadcastRepository.getRecentBroadcasts(channel);
       strategies.get(action).accept(recentBroadcasts);
     } catch (IOException e) {
@@ -58,7 +59,7 @@ public class RecentBroadcastBusiness {
   public static RecentBroadcastBusiness init(SomaFmConfig config) {
     return new RecentBroadcastBusiness(
         DefaultBroadcastRepository.init(config),
-        new DisplayedBroadcastMapper(ZoneId.systemDefault())
+        new DisplayedBroadcastMapper(ZoneId.of(config.getTimezone()))
     );
   }
 
