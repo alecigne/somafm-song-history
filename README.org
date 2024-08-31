@@ -30,27 +30,11 @@ Songs" page (example [[https://somafm.com/dronezone/songhistory.html][here]]).
 :CREATED:  [2022-11-02 Wed 19:00]
 :END:
 
-** v0.3 (next)
-:PROPERTIES:
-:CREATED:  [2022-12-30 Fri 11:50]
-:END:
-
-Goals for v0.3:
-
-- Use a scheduler to retrieve history at regular intervals. History
-  cannot be displayed in the console anymore.
-- Expose a REST API of recently played songs.
-
-** v0.2 (current)
-:PROPERTIES:
-:CREATED:  [2022-12-30 Fri 11:49]
-:END:
-
 Two arguments must be provided to the application: an /action/
 (=display= or =save=) and a /channel/ (e.g. =Groove Salad=). The
 channel name is its public name, available on [[https://somafm.com/#alpha][this page]].
 
-*** Setting up a database
+** Setting up a database
 :PROPERTIES:
 :CREATED:  [2022-12-30 Fri 15:53]
 :END:
@@ -68,7 +52,7 @@ using Docker and the PostgreSQL official image:
 
 The default user is =postgres=.
 
-*** Option 1: Docker
+** Option 1: Docker
 :PROPERTIES:
 :CREATED:  [2022-12-30 Fri 15:54]
 :END:
@@ -86,7 +70,7 @@ Run the container with your credentials of choice:
 
 The Docker image is hosted on [[https://hub.docker.com/repository/docker/alecigne/somafm-song-history][DockerHub]].
 
-*** Option 2: Jar file
+** Option 2: Jar file
 :PROPERTIES:
 :CREATED:  [2022-12-30 Fri 15:53]
 :END:
@@ -101,22 +85,6 @@ The Docker image is hosted on [[https://hub.docker.com/repository/docker/alecign
 #+end_src
 
 (with Java 17)
-
-** v0.1
-:PROPERTIES:
-:CREATED:  [2022-12-30 Fri 11:48]
-:END:
-
-This version only displays the history in the console.
-
-#+begin_src sh
-  java -jar somafm-song-history-0.1.0.jar "Beat Blender"
-#+end_src
-
-(with Java 17)
-
-The channel name is the public name, available on [[https://somafm.com/#alpha][this page]]. Without a
-channel, the program will default to Drone Zone.
 
 * Known bugs
 :PROPERTIES:
