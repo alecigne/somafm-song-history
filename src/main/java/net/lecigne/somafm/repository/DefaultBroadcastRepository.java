@@ -8,13 +8,16 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Clock;
+import java.time.ZoneId;
 import java.util.Set;
 import javax.sql.DataSource;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.lecigne.somafm.business.BusinessAction;
 import net.lecigne.somafm.client.RecentBroadcastsClient;
 import net.lecigne.somafm.client.dto.RecentBroadcastsDto;
 import net.lecigne.somafm.config.SomaFmConfig;
+import net.lecigne.somafm.config.SomaFmConfig.DbConfig;
 import net.lecigne.somafm.mappers.BroadcastMapper;
 import net.lecigne.somafm.model.Broadcast;
 import net.lecigne.somafm.model.Channel;
@@ -81,12 +84,18 @@ public class DefaultBroadcastRepository implements BroadcastRepository {
 
   public static BroadcastRepository init(SomaFmConfig config) {
     RecentBroadcastsClient client = RecentBroadcastsClient.init(config);
-    var mapper = new BroadcastMapper(Clock.systemDefaultZone());
-    var hikariConfig = new HikariConfig();
-    hikariConfig.setJdbcUrl(config.getDbUrl());
-    hikariConfig.setUsername(config.getDbUser());
-    hikariConfig.setPassword(config.getDbPassword());
-    var hikariDataSource = new HikariDataSource(hikariConfig);
+    var mapper = new BroadcastMapper(Clock.system(ZoneId.of(config.getTimezone())));
+    HikariDataSource hikariDataSource;
+    if (BusinessAction.SAVE.equals(config.getAction())) {
+      var hikariConfig = new HikariConfig();
+      DbConfig db = config.getDb();
+      hikariConfig.setJdbcUrl(db.getUrl());
+      hikariConfig.setUsername(db.getUser());
+      hikariConfig.setPassword(db.getPassword());
+      hikariDataSource = new HikariDataSource(hikariConfig);
+    } else {
+      hikariDataSource = null;
+    }
     return new DefaultBroadcastRepository(client, mapper, hikariDataSource);
   }
 

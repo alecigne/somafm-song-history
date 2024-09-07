@@ -1,9 +1,11 @@
 package net.lecigne.somafm.business;
 
 import java.util.Arrays;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
+@Getter
 public enum BusinessAction {
   DISPLAY("display"), SAVE("save");
 
