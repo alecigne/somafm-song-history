@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import lombok.RequiredArgsConstructor;
-import net.lecigne.somafm.model.Broadcast;
 import net.lecigne.somafm.model.DisplayedBroadcast;
+import net.lecigne.somafm.recentlib.Broadcast;
 
 @RequiredArgsConstructor
 public class DisplayedBroadcastMapper {

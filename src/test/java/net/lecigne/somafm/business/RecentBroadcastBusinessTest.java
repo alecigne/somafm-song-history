@@ -5,7 +5,7 @@ import static net.lecigne.somafm.business.BusinessAction.DISPLAY;
 import static net.lecigne.somafm.fixtures.TestFixtures.breakSongFixture;
 import static net.lecigne.somafm.fixtures.TestFixtures.dirkSerriesSongFixture;
 import static net.lecigne.somafm.fixtures.TestFixtures.igneousFlameSongFixture;
-import static net.lecigne.somafm.model.Channel.DRONE_ZONE;
+import static net.lecigne.somafm.recentlib.Channel.DRONE_ZONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -14,10 +14,11 @@ import com.github.stefanbirkner.systemlambda.Statement;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Set;
 import net.lecigne.somafm.exception.SomaFmHtmlParsingException;
 import net.lecigne.somafm.mappers.DisplayedBroadcastMapper;
-import net.lecigne.somafm.model.Broadcast;
+import net.lecigne.somafm.recentlib.Broadcast;
 import net.lecigne.somafm.repository.BroadcastRepository;
 import net.lecigne.somafm.repository.DefaultBroadcastRepository;
 import nl.altindag.log.LogCaptor;
@@ -38,7 +39,7 @@ class RecentBroadcastBusinessTest {
     void should_display_a_list_of_recent_broadcasts() throws Exception {
       // Given
       BroadcastRepository repository = Mockito.mock(DefaultBroadcastRepository.class);
-      given(repository.getRecentBroadcasts(any())).willReturn(Set.of(
+      given(repository.getRecentBroadcasts(any())).willReturn(List.of(
           Broadcast.builder()
               .time(Instant.parse("2021-01-01T13:00:00.00Z"))
               .channel(DRONE_ZONE)

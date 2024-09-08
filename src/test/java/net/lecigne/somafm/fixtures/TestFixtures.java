@@ -2,7 +2,7 @@ package net.lecigne.somafm.fixtures;
 
 import static net.lecigne.somafm.SomaFmSongHistory.BREAK_STATION_ID;
 
-import net.lecigne.somafm.model.Song;
+import net.lecigne.somafm.recentlib.Song;
 
 public final class TestFixtures {
 

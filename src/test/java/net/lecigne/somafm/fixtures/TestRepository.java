@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
-import net.lecigne.somafm.model.Broadcast;
-import net.lecigne.somafm.model.Channel;
-import net.lecigne.somafm.model.Song;
+import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.recentlib.Channel;
+import net.lecigne.somafm.recentlib.Song;
 
 @RequiredArgsConstructor
 public class TestRepository {

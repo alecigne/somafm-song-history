@@ -2,39 +2,30 @@ package net.lecigne.somafm.repository;
 
 import static net.lecigne.somafm.fixtures.TestFixtures.dirkSerriesSongFixture;
 import static net.lecigne.somafm.fixtures.TestFixtures.igneousFlameSongFixture;
-import static net.lecigne.somafm.model.Channel.DRONE_ZONE;
+import static net.lecigne.somafm.recentlib.Channel.DRONE_ZONE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 
-import com.google.common.io.Resources;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
-import net.lecigne.somafm.client.HtmlBroadcastsClient;
-import net.lecigne.somafm.client.HtmlBroadcastsParser;
-import net.lecigne.somafm.client.RecentBroadcastsClient;
-import net.lecigne.somafm.config.SomaFmConfig;
 import net.lecigne.somafm.fixtures.TestRepository;
-import net.lecigne.somafm.mappers.BroadcastMapper;
-import net.lecigne.somafm.model.Broadcast;
-import net.lecigne.somafm.model.Song;
-import okhttp3.mockwebserver.Dispatcher;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
+import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.recentlib.Channel;
+import net.lecigne.somafm.recentlib.SomaFm;
+import net.lecigne.somafm.recentlib.Song;
 import org.flywaydb.core.Flyway;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.BDDMockito;
+import org.mockito.Mockito;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -42,7 +33,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 class DefaultBroadcastRepositoryIT {
 
-  static MockWebServer mockWebServer;
+  private static SomaFm mockSomaFmClient = Mockito.mock(SomaFm.class);
   private static BroadcastRepository repository;
   private static TestRepository testRepository;
 
@@ -51,12 +42,7 @@ class DefaultBroadcastRepositoryIT {
   );
 
   @BeforeAll
-  static void beforeAll() throws IOException {
-    // MockWebServer
-    mockWebServer = new MockWebServer();
-    mockWebServer.start();
-    mockWebServer.setDispatcher(getDispatcher());
-
+  static void beforeAll() {
     // Persistence
     postgres.start();
     var hikariConfig = new HikariConfig();
@@ -71,25 +57,13 @@ class DefaultBroadcastRepositoryIT {
         .migrate();
 
     // Application
-    var configuration = new SomaFmConfig();
-    configuration.setSomaFmBaseUrl(mockWebServer.url("/").toString());
-    configuration.setUserAgent("UA");
-    configuration.setTimezone("Europe/Paris");
-    HtmlBroadcastsClient htmlClient = HtmlBroadcastsClient.create(configuration);
-    var recentBroadcastsClient = new RecentBroadcastsClient(htmlClient, new HtmlBroadcastsParser());
-    Clock clock = Clock.fixed(Instant.parse("2021-01-01T13:00:00.00Z"), ZoneId.of("Europe/Paris"));
-    repository = new DefaultBroadcastRepository(recentBroadcastsClient, new BroadcastMapper(clock), hikariDataSource);
+    repository = new DefaultBroadcastRepository(mockSomaFmClient, hikariDataSource);
     testRepository = new TestRepository(hikariDataSource);
   }
 
   @AfterEach
   void tearDown() throws IOException {
     testRepository.deleteAllData();
-  }
-
-  @AfterAll
-  static void afterAll() throws IOException {
-    mockWebServer.shutdown();
   }
 
   @Test
@@ -101,14 +75,29 @@ class DefaultBroadcastRepositoryIT {
         .channel(channel)
         .song(dirkSerriesSongFixture())
         .build();
+    BDDMockito
+        .given(mockSomaFmClient.fetchRecent(any()))
+        .willReturn(List.of(
+            expectedMostRecentBroadcast,
+            Broadcast.builder()
+                .channel(Channel.DRONE_ZONE)
+                .time(LocalDateTime.parse("2018-04-29T12:26:56").atZone(ZoneId.of("Europe/Paris")).toInstant())
+                .song(Song.builder().artist("Igneous Flame").title("Incandescent Arc").album("Lapiz").build())
+                .build(),
+            Broadcast.builder()
+                .channel(Channel.DRONE_ZONE)
+                .time(LocalDateTime.parse("2018-04-29T12:20:05").atZone(ZoneId.of("Europe/Paris")).toInstant())
+                .song(Song.builder().artist("Snufmumriko").title("Further Afield").album("This Tide Will Bring You Home").build())
+                .build()
+        ));
 
     // When
-    Set<Broadcast> recentBroadcasts = repository.getRecentBroadcasts(channel);
+    List<Broadcast> recentBroadcasts = repository.getRecentBroadcasts(channel);
 
     // Then
     assertThat(recentBroadcasts)
         .isNotEmpty()
-        .hasSize(20);
+        .hasSize(3);
     Broadcast mostRecentBroadcast = recentBroadcasts.stream().max(Comparator.comparing(Broadcast::getTime)).get();
     assertThat(mostRecentBroadcast).usingRecursiveComparison().isEqualTo(expectedMostRecentBroadcast);
   }
@@ -128,7 +117,7 @@ class DefaultBroadcastRepositoryIT {
         .build();
 
     // When
-    repository.updateBroadcasts(Set.of(broadcast1, broadcast2));
+    repository.updateBroadcasts(List.of(broadcast1, broadcast2));
 
     // Then
     List<Broadcast> broadcasts = testRepository.readAllBroadcasts();
@@ -153,7 +142,7 @@ class DefaultBroadcastRepositoryIT {
         .build();
 
     // When
-    repository.updateBroadcasts(Set.of(broadcast1, broadcast2));
+    repository.updateBroadcasts(List.of(broadcast1, broadcast2));
 
     // Then
     List<Broadcast> broadcasts = testRepository.readAllBroadcasts();
@@ -178,7 +167,7 @@ class DefaultBroadcastRepositoryIT {
         .build();
 
     // When
-    repository.updateBroadcasts(Set.of(broadcast1, broadcast2));
+    repository.updateBroadcasts(List.of(broadcast1, broadcast2));
 
     // Then
     List<Broadcast> broadcasts = testRepository.readAllBroadcasts();
@@ -192,19 +181,6 @@ class DefaultBroadcastRepositoryIT {
         .hasSize(1)
         .usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(dirkSerriesSongFixture());
-  }
-
-  private static Dispatcher getDispatcher() throws IOException {
-    URL url = Resources.getResource("data/dronezone.html");
-    String html = Resources.toString(url, StandardCharsets.UTF_8);
-    return new Dispatcher() {
-      @Override
-      public MockResponse dispatch(RecordedRequest recordedRequest) {
-        return new MockResponse()
-            .setResponseCode(200)
-            .setBody(html);
-      }
-    };
   }
 
 }

@@ -2,25 +2,20 @@ package net.lecigne.somafm.repository;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.Clock;
-import java.time.ZoneId;
-import java.util.Set;
+import java.util.List;
 import javax.sql.DataSource;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.lecigne.somafm.business.BusinessAction;
-import net.lecigne.somafm.client.RecentBroadcastsClient;
-import net.lecigne.somafm.client.dto.RecentBroadcastsDto;
 import net.lecigne.somafm.config.SomaFmConfig;
 import net.lecigne.somafm.config.SomaFmConfig.DbConfig;
-import net.lecigne.somafm.mappers.BroadcastMapper;
-import net.lecigne.somafm.model.Broadcast;
-import net.lecigne.somafm.model.Channel;
+import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.recentlib.Channel;
+import net.lecigne.somafm.recentlib.SomaFm;
 
 /**
  * Handle most recent SomaFM broadcasts for a given channel.
@@ -29,15 +24,13 @@ import net.lecigne.somafm.model.Channel;
 @Slf4j
 public class DefaultBroadcastRepository implements BroadcastRepository {
 
-  private RecentBroadcastsClient recentBroadcastsClient;
-  private BroadcastMapper broadcastMapper;
+  private final SomaFm somaFm;
   private final DataSource dataSource;
 
   @Override
-  public Set<Broadcast> getRecentBroadcasts(Channel channel) throws IOException {
+  public List<Broadcast> getRecentBroadcasts(Channel channel) {
     log.info("Getting recent broadcasts for SomaFM's {}", channel.getPublicName());
-    RecentBroadcastsDto recentBroadcastsDto = recentBroadcastsClient.get(channel);
-    return broadcastMapper.map(recentBroadcastsDto);
+    return somaFm.fetchRecent(channel);
   }
 
   /**
@@ -47,7 +40,7 @@ public class DefaultBroadcastRepository implements BroadcastRepository {
    * broadcasts table.
    */
   @Override
-  public void updateBroadcasts(Set<Broadcast> broadcasts) {
+  public void updateBroadcasts(List<Broadcast> broadcasts) {
     var sql = """
         WITH upsert_song AS(
             INSERT INTO songs (artist, title, album)
@@ -83,8 +76,11 @@ public class DefaultBroadcastRepository implements BroadcastRepository {
   }
 
   public static BroadcastRepository init(SomaFmConfig config) {
-    RecentBroadcastsClient client = RecentBroadcastsClient.init(config);
-    var mapper = new BroadcastMapper(Clock.system(ZoneId.of(config.getTimezone())));
+    var somaFm = SomaFm.builder()
+        .baseUrl(config.getSomaFmBaseUrl())
+        .userAgent(config.getUserAgent())
+        .timezone(config.getTimezone())
+        .build();
     HikariDataSource hikariDataSource;
     if (BusinessAction.SAVE.equals(config.getAction())) {
       var hikariConfig = new HikariConfig();
@@ -96,7 +92,7 @@ public class DefaultBroadcastRepository implements BroadcastRepository {
     } else {
       hikariDataSource = null;
     }
-    return new DefaultBroadcastRepository(client, mapper, hikariDataSource);
+    return new DefaultBroadcastRepository(somaFm, hikariDataSource);
   }
 
 }

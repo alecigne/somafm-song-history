@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.lecigne.somafm.business.BusinessAction;
 import net.lecigne.somafm.business.RecentBroadcastBusiness;
 import net.lecigne.somafm.exception.UnknownChannelException;
-import net.lecigne.somafm.model.Channel;
+import net.lecigne.somafm.recentlib.Channel;
 
 @Slf4j
 @RequiredArgsConstructor
