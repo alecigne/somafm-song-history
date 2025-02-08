@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
-import net.lecigne.somafm.model.Broadcast;
-import net.lecigne.somafm.model.Channel;
-import net.lecigne.somafm.model.Song;
+import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.recentlib.PredefinedChannel;
+import net.lecigne.somafm.recentlib.Song;
 
 @RequiredArgsConstructor
 public class TestRepository {
@@ -34,7 +34,7 @@ public class TestRepository {
         var album = resultSet.getString(5);
         var broadcast = Broadcast.builder()
             .time(time.toInstant())
-            .channel(Channel.valueOf(channel))
+            .channel(PredefinedChannel.getByPublicName(channel).orElseThrow())
             .song(Song.builder()
                 .artist(artist)
                 .title(title)

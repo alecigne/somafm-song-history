@@ -1,8 +1,6 @@
 package net.lecigne.somafm.fixtures;
 
-import static net.lecigne.somafm.SomaFmSongHistory.BREAK_STATION_ID;
-
-import net.lecigne.somafm.model.Song;
+import net.lecigne.somafm.recentlib.Song;
 
 public final class TestFixtures {
 
@@ -24,7 +22,7 @@ public final class TestFixtures {
 
   public static Song breakSongFixture() {
     return Song.builder()
-        .title(BREAK_STATION_ID)
+        .title("Break / Station ID")
         .build();
   }
 

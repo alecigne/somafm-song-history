@@ -5,41 +5,38 @@ import static net.lecigne.somafm.config.SomaFmConfig.ROOT_CONFIG;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigBeanFactory;
 import com.typesafe.config.ConfigFactory;
-import java.time.ZoneId;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
-import net.lecigne.somafm.business.BusinessAction;
-import net.lecigne.somafm.business.RecentBroadcastBusiness;
-import net.lecigne.somafm.cli.CLI;
+import net.lecigne.somafm.adapters.primary.CLI;
+import net.lecigne.somafm.adapters.secondary.DefaultBroadcastRepository;
+import net.lecigne.somafm.application.api.SomaFmSongHistoryApi;
+import net.lecigne.somafm.application.logic.RecentBroadcastBusiness;
+import net.lecigne.somafm.application.spi.SomaFmSongHistorySpi;
 import net.lecigne.somafm.config.SomaFmConfig;
 import net.lecigne.somafm.config.SomaFmConfig.DbConfig;
+import net.lecigne.somafm.domain.Action;
+import net.lecigne.somafm.recentlib.SomaFm;
 import org.flywaydb.core.Flyway;
 
 @Slf4j
 public class SomaFmSongHistory {
 
-  /**
-   * SomaFM's broadcast location.
-   */
-  public static final ZoneId BROADCAST_LOCATION = ZoneId.of("America/Los_Angeles");
-
-  /**
-   * The title given to breaks by SomaFM.
-   */
-  public static final String BREAK_STATION_ID = "Break / Station ID";
-
   public static void main(String[] args) {
     Config config = ConfigFactory.load();
     SomaFmConfig somaFmConfig = ConfigBeanFactory.create(config.getConfig(ROOT_CONFIG), SomaFmConfig.class);
-    BusinessAction action = BusinessAction.getValue(args[0]);
+    Action action = Action.getValue(args[0]);
     somaFmConfig.setAction(action);
-    if (BusinessAction.SAVE.equals(action)) {
-      prepareDatabase(somaFmConfig);
+    if (Action.SAVE.equals(action)) {
+      initDb(somaFmConfig);
     }
-    RecentBroadcastBusiness business = RecentBroadcastBusiness.init(somaFmConfig);
-    new CLI(business).run(args);
+    SomaFmSongHistorySpi spi = initSpi(somaFmConfig);
+    SomaFmSongHistoryApi api = initBusiness(spi);
+    CLI cli = CLI.initCli(api, somaFmConfig);
+    cli.run(args);
   }
 
-  private static void prepareDatabase(SomaFmConfig somaFmConfig) {
+  private static void initDb(SomaFmConfig somaFmConfig) {
     if (!somaFmConfig.isDbActivated()) {
       log.error("SAVE mode requires db config! Exiting.");
       System.exit(1);
@@ -50,6 +47,26 @@ public class SomaFmSongHistory {
           .load()
           .migrate();
     }
+  }
+
+  private static SomaFmSongHistorySpi initSpi(SomaFmConfig config) {
+    HikariDataSource hikariDataSource;
+    if (Action.SAVE.equals(config.getAction())) {
+      var hikariConfig = new HikariConfig();
+      DbConfig db = config.getDb();
+      hikariConfig.setJdbcUrl(db.getUrl());
+      hikariConfig.setUsername(db.getUser());
+      hikariConfig.setPassword(db.getPassword());
+      hikariDataSource = new HikariDataSource(hikariConfig);
+    } else {
+      hikariDataSource = null;
+    }
+    SomaFm somaFm = SomaFm.of(config.getUserAgent());
+    return new DefaultBroadcastRepository(somaFm, hikariDataSource);
+  }
+
+  private static RecentBroadcastBusiness initBusiness(SomaFmSongHistorySpi spi) {
+    return new RecentBroadcastBusiness(spi);
   }
 
 }

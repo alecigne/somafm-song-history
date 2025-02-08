@@ -13,27 +13,22 @@ any [issue][3].
 My goal is to build and browse a personal database of songs played by SomaFM, and as an ambient fan,
 especially Drone Zone.
 
-As stated on [this page][4]:
-
-> SomaFM API is no longer available to third parties
-
-Thus this application works by parsing SomaFM's "Recently Played Songs" page (example [here][5]).
+This project uses [somafm-recentlib][4].
 
 # Usage
 
 Two arguments must be provided to the application: an *action* (`display` or `save`) and a
 *channel* (e.g. `Groove Salad`). The channel name is its public name, available
-on [this page][6].
+on [this page][5].
 
 ## `display` mode
 
 ### Configuration file
 
-Prepare a configuration file in [HOCON][7] format:
+Prepare a configuration file in [HOCON][6] format:
 
 ``` hocon
 config {
-  somaFmBaseUrl = "https://somafm.com/"
   userAgent = "choose-a-user-agent"
   timezone = "choose-a-timezone"
 }
@@ -47,11 +42,11 @@ Run a container with the latest image:
 docker run -it -v /absolute/path/to/application.conf:/application.conf alecigne/somafm-song-history "display" "Drone Zone"
 ```
 
-The Docker image is hosted on [DockerHub][8].
+The Docker image is hosted on [DockerHub][7].
 
 ### Option 2: Jar file
 
-[Download the jar][9] (or build it from source), then run:
+[Download the jar][8] (or build it from source), then run:
 
 ``` shell
 java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "display" "Drone Zone"
@@ -74,13 +69,18 @@ docker run \
 
 The default user is `postgres`.
 
+Alternatively, use the provided Docker compose file:
+
+``` shell
+docker compose up -d db
+```
+
 ### Configuration file
 
 Prepare a configuration file in [HOCON][7] format:
 
 ``` hocon
 config {
-  somaFmBaseUrl = "https://somafm.com/"
   userAgent = "choose-a-user-agent"
   timezone = "choose-a-timezone"
   db {
@@ -115,7 +115,7 @@ java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "displ
 
 # Known bugs
 
-Check them [here][10].
+Check them [here][9].
 
 [1]: https://somafm.com
 
@@ -123,16 +123,14 @@ Check them [here][10].
 
 [3]: https://github.com/alecigne/somafm-song-history/issues
 
-[4]: https://somafm.com/linktous/api.html
+[4]: https://github.com/alecigne/somafm-recentlib
 
-[5]: https://somafm.com/dronezone/songhistory.html
+[5]: https://somafm.com/#alpha
 
-[6]: https://somafm.com/#alpha
+[6]: https://github.com/lightbend/config/blob/main/HOCON.md
 
-[7]: https://github.com/lightbend/config/blob/main/HOCON.md
+[7]: https://hub.docker.com/r/alecigne/somafm-song-history
 
-[8]: https://hub.docker.com/r/alecigne/somafm-song-history
+[8]: https://github.com/alecigne/somafm-song-history/releases/download/0.2.0/somafm-song-history-0.2.0.jar
 
-[9]: https://github.com/alecigne/somafm-song-history/releases/download/0.2.0/somafm-song-history-0.2.0.jar
-
-[10]: https://github.com/alecigne/somafm-song-history/issues?q=is%3Aopen+is%3Aissue+label%3Abug
+[9]: https://github.com/alecigne/somafm-song-history/issues?q=is%3Aopen+is%3Aissue+label%3Abug
