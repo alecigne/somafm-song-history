@@ -1,35 +1,27 @@
 package net.lecigne.somafm.integration;
 
-import static net.lecigne.somafm.SomaFmSongHistory.BROADCAST_LOCATION;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.google.common.io.Resources;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
 import java.util.List;
-import net.lecigne.somafm.business.RecentBroadcastBusiness;
-import net.lecigne.somafm.cli.CLI;
-import net.lecigne.somafm.client.HtmlBroadcastsClient;
-import net.lecigne.somafm.client.HtmlBroadcastsParser;
-import net.lecigne.somafm.client.RecentBroadcastsClient;
+import net.lecigne.somafm.adapters.primary.CLI;
+import net.lecigne.somafm.adapters.secondary.DefaultBroadcastRepository;
+import net.lecigne.somafm.application.logic.RecentBroadcastBusiness;
 import net.lecigne.somafm.config.SomaFmConfig;
 import net.lecigne.somafm.fixtures.TestRepository;
-import net.lecigne.somafm.mappers.BroadcastMapper;
-import net.lecigne.somafm.mappers.DisplayedBroadcastMapper;
-import net.lecigne.somafm.model.Broadcast;
-import net.lecigne.somafm.model.Song;
-import net.lecigne.somafm.repository.BroadcastRepository;
-import net.lecigne.somafm.repository.DefaultBroadcastRepository;
-import okhttp3.mockwebserver.Dispatcher;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
+import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.recentlib.SomaFm;
+import net.lecigne.somafm.recentlib.Song;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -37,6 +29,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 // TODO [persist-recent-broadcasts] Mutualize resources between this test and DefaultBroadcastRepositoryIT
@@ -44,47 +37,40 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 class SomaFmSongHistoryIT {
 
-  static MockWebServer mockWebServer;
+  static WireMockServer wireMockServer;
   private static CLI cli;
   private static TestRepository testRepository;
 
-  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
-      "postgres:16-alpine"
-  );
+  @Container
+  private static final PostgreSQLContainer<?> POSTGRES_CONTAINER = new PostgreSQLContainer<>("postgres:16-alpine");
 
   @BeforeAll
   static void beforeAll() throws IOException {
-    // MockWebServer
-    mockWebServer = new MockWebServer();
-    mockWebServer.start();
-    mockWebServer.setDispatcher(getDispatcher());
+    // WireMock
+    wireMockServer = new WireMockServer(wireMockConfig().dynamicPort());
+    wireMockServer.start();
+    configureStubs();
 
     // Persistence
-    postgres.start();
     var hikariConfig = new HikariConfig();
-    hikariConfig.setJdbcUrl(postgres.getJdbcUrl());
-    hikariConfig.setUsername(postgres.getUsername());
-    hikariConfig.setPassword(postgres.getPassword());
+    hikariConfig.setJdbcUrl(POSTGRES_CONTAINER.getJdbcUrl());
+    hikariConfig.setUsername(POSTGRES_CONTAINER.getUsername());
+    hikariConfig.setPassword(POSTGRES_CONTAINER.getPassword());
     var hikariDataSource = new HikariDataSource(hikariConfig);
 
     Flyway.configure()
-        .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
+        .dataSource(POSTGRES_CONTAINER.getJdbcUrl(), POSTGRES_CONTAINER.getUsername(), POSTGRES_CONTAINER.getPassword())
         .load()
         .migrate();
 
     // Application
-    var config = new SomaFmConfig();
-    config.setSomaFmBaseUrl(mockWebServer.url("/").toString());
-    config.setUserAgent("UA");
-    config.setTimezone("Europe/Paris");
-    HtmlBroadcastsClient htmlClient = HtmlBroadcastsClient.create(config);
-    var recentBroadcastsClient = new RecentBroadcastsClient(htmlClient, new HtmlBroadcastsParser());
-    Clock clock = Clock.fixed(Instant.parse("2021-01-01T13:00:00.00Z"), ZoneId.of("Europe/Paris"));
-    BroadcastRepository repository = new DefaultBroadcastRepository(recentBroadcastsClient, new BroadcastMapper(clock),
-        hikariDataSource);
-    var business = new RecentBroadcastBusiness(repository, new DisplayedBroadcastMapper(BROADCAST_LOCATION));
+    var somaFm = SomaFm.of(wireMockServer.baseUrl(), "UA");
+    DefaultBroadcastRepository repository = new DefaultBroadcastRepository(somaFm, hikariDataSource);
+    var business = new RecentBroadcastBusiness(repository);
     testRepository = new TestRepository(hikariDataSource);
-    cli = new CLI(business);
+    var somaFmConfig = new SomaFmConfig();
+    somaFmConfig.setTimezone("Europe/Paris");
+    cli = CLI.initCli(business, somaFmConfig);
   }
 
   @AfterEach
@@ -93,8 +79,8 @@ class SomaFmSongHistoryIT {
   }
 
   @AfterAll
-  static void afterAll() throws IOException {
-    mockWebServer.shutdown();
+  static void afterAll() {
+    wireMockServer.stop();
   }
 
   @Test
@@ -112,17 +98,11 @@ class SomaFmSongHistoryIT {
     assertThat(songs).hasSize(19);
   }
 
-  private static Dispatcher getDispatcher() throws IOException {
+  private static void configureStubs() throws IOException {
     URL url = Resources.getResource("data/dronezone_with_one_duplicate.html");
     String html = Resources.toString(url, StandardCharsets.UTF_8);
-    return new Dispatcher() {
-      @Override
-      public MockResponse dispatch(RecordedRequest recordedRequest) {
-        return new MockResponse()
-            .setResponseCode(200)
-            .setBody(html);
-      }
-    };
+    wireMockServer.stubFor(get(urlMatching(".*"))
+        .willReturn(aResponse().withStatus(200).withBody(html)));
   }
 
 }

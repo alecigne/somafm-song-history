@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: somafm-song-history-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: somafm-song-history
+    depends_on:
+      - db
+    network_mode: host
+    profiles:
+      - manual
+
+volumes:
+  postgres_data:

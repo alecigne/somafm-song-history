@@ -6,7 +6,7 @@ import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import net.lecigne.somafm.business.BusinessAction;
+import net.lecigne.somafm.domain.Action;
 
 @NoArgsConstructor
 @Getter
@@ -15,13 +15,12 @@ public class SomaFmConfig {
 
   public static final String ROOT_CONFIG = "config";
 
-  private String somaFmBaseUrl;
   private String userAgent;
   private String timezone;
   @Optional
   private DbConfig db;
   @Optional
-  private BusinessAction action; // set internally
+  private Action action; // set internally
 
   @NoArgsConstructor
   @Getter
@@ -33,8 +32,7 @@ public class SomaFmConfig {
   }
 
   public boolean isDbActivated() {
-    return Objects.nonNull(db) &&
-           Stream.of(db.getUrl(), db.getUser(), db.getPassword()).allMatch(Objects::nonNull);
+    return Objects.nonNull(db) && Stream.of(db.getUrl(), db.getUser(), db.getPassword()).allMatch(Objects::nonNull);
   }
 
 }
