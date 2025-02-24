@@ -15,8 +15,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.testing.version>3.5.2</maven.testing.version>
-    <flyway.version>10.17.2</flyway.version>
-    <maven.compiler.version>3.13.0</maven.compiler.version>
+    <flyway.version>11.3.3</flyway.version>
+    <maven.compiler.version>3.14.0</maven.compiler.version>
     <lombok.version>1.18.36</lombok.version>
   </properties>
 
@@ -52,7 +52,7 @@
       <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
-        <version>5.10.5</version>
+        <version>5.12.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -70,7 +70,7 @@
     <dependency>
       <groupId>com.zaxxer</groupId>
       <artifactId>HikariCP</artifactId>
-      <version>5.1.0</version>
+      <version>6.2.1</version>
       <!-- This brings SLF4J1 but Logback provides SLF4J2 -->
       <exclusions>
         <exclusion>
@@ -92,7 +92,7 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.7.4</version>
+      <version>42.7.5</version>
     </dependency>
     <!-- Other -->
     <dependency>
@@ -109,7 +109,7 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.5.7</version>
+      <version>1.5.16</version>
     </dependency>
     <!-- Testing -->
     <dependency>
@@ -218,7 +218,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.3.0</version>
+        <version>3.6.0</version>
         <executions>
           <execution>
             <phase>package</phase>
