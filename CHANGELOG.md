@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.4.0](https://github.com/alecigne/somafm-song-history/tree/v0.4.0) - 2025-07-26
+
+- Integrate [somafm-recentlib](https://github.com/alecigne/somafm-recentlib).
+- Update dependencies.
+
 ## [v0.3.0](https://github.com/alecigne/somafm-song-history/tree/v0.3.0) - 2024-05-04
 
 - Simplify usage: passing a database configuration is now optional in `display` mode.
