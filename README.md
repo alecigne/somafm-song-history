@@ -39,7 +39,7 @@ config {
 Run a container with the latest image:
 
 ``` shell
-docker run -it -v /absolute/path/to/application.conf:/application.conf alecigne/somafm-song-history "display" "Drone Zone"
+docker run -it -v /absolute/path/to/application.conf:/application.conf alecigne/somafm-song-history:v0.4.0 "display" "Drone Zone"
 ```
 
 The Docker image is hosted on [DockerHub][7].
@@ -96,7 +96,7 @@ config {
 Run the container with your credentials of choice:
 
 ``` shell
-docker run -it -v /absolute/path/to/application.conf:/application.conf --net=host alecigne/somafm-song-history "display" "Drone Zone"
+docker run -it -v /absolute/path/to/application.conf:/application.conf --net=host alecigne/somafm-song-history:v0.4.0 "display" "Drone Zone"
 ```
 
 Note the `--net=host` option.
