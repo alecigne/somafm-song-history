@@ -15,7 +15,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.testing.version>3.5.3</maven.testing.version>
-    <flyway.version>11.10.4</flyway.version>
+    <flyway.version>11.11.1</flyway.version>
     <maven.compiler.version>3.14.0</maven.compiler.version>
     <lombok.version>1.18.38</lombok.version>
   </properties>
@@ -70,7 +70,7 @@
     <dependency>
       <groupId>com.zaxxer</groupId>
       <artifactId>HikariCP</artifactId>
-      <version>6.3.0</version>
+      <version>7.0.1</version>
       <!-- This brings SLF4J1 but Logback provides SLF4J2 -->
       <exclusions>
         <exclusion>
@@ -103,7 +103,7 @@
     <dependency>
       <groupId>com.typesafe</groupId>
       <artifactId>config</artifactId>
-      <version>1.4.3</version>
+      <version>1.4.4</version>
     </dependency>
     <!-- Logging -->
     <dependency>
@@ -125,7 +125,7 @@
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
-      <version>3.27.3</version>
+      <version>3.27.4</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -137,7 +137,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>5.18.0</version>
+      <version>5.19.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -170,7 +170,7 @@
     <dependency>
       <groupId>io.github.hakky54</groupId>
       <artifactId>logcaptor</artifactId>
-      <version>2.11.0</version>
+      <version>2.12.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
