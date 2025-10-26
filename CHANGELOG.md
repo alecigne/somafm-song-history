@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.4.1](https://github.com/alecigne/somafm-song-history/tree/v0.4.1) - 2025-10-26
+
+- Update dependencies.
+- Improve user experience/README with Docker.
+
 ## [v0.4.0](https://github.com/alecigne/somafm-song-history/tree/v0.4.0) - 2025-07-26
 
 - Integrate [somafm-recentlib](https://github.com/alecigne/somafm-recentlib).
