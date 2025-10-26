@@ -15,10 +15,10 @@ class DisplayedBroadcastMapper {
 
   DisplayableBroadcast map(Broadcast broadcast) {
     return DisplayableBroadcast.builder()
-        .time(LocalDateTime.ofInstant(broadcast.getTime(), zoneId).format(FORMATTER))
-        .channel(broadcast.getChannel().publicName())
-        .artist(broadcast.getSong().getArtist())
-        .title(broadcast.getSong().getTitle())
+        .time(LocalDateTime.ofInstant(broadcast.time(), zoneId).format(FORMATTER))
+        .channel(broadcast.channel().publicName())
+        .artist(broadcast.song().artist() != null ? broadcast.song().artist().name() : null)
+        .title(broadcast.song().title())
         .build();
   }
 

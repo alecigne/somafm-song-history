@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Instant;
 import java.time.ZoneId;
 import net.lecigne.somafm.domain.DisplayableBroadcast;
+import net.lecigne.somafm.recentlib.Artist;
 import net.lecigne.somafm.recentlib.Broadcast;
 import net.lecigne.somafm.recentlib.PredefinedChannel;
 import net.lecigne.somafm.recentlib.Song;
@@ -23,7 +24,7 @@ class DisplayableBroadcastMapperTest {
         .time(Instant.parse("2025-02-16T15:00:00Z"))
         .channel(PredefinedChannel.GROOVE_SALAD)
         .song(Song.builder()
-            .artist("an_artist")
+            .artist(Artist.builder().name("an_artist").build())
             .title("a_title")
             .album("an_album")
             .build())
