@@ -1,31 +1,30 @@
 # `somafm-song-history`
 
-Application that retrieves and prints [SomaFM][1]'s recently played songs in the console, or save it
-to a database.
+`somafm-song-history` is a Java application that retrieves and prints [SomaFM][soma]'s recently
+played songs in the console, or save it to a database.
 
-Please support SomaFM's awesome work [here][2].
+Please support SomaFM's awesome work [here][soma-support].
 
 # About
 
-This project is developed for my personal use, but I'll be glad to help if you encounter
-any [issue][3].
+This project is developed for my personal use, but I'll be glad to help if you encounter any
+[issue][issues].
 
 My goal is to build and browse a personal database of songs played by SomaFM, and as an ambient fan,
 especially Drone Zone.
 
-This project uses [somafm-recentlib][4].
+This project uses [somafm-recentlib][lib].
 
 # Usage
 
-Two arguments must be provided to the application: an *action* (`display` or `save`) and a
-*channel* (e.g. `Groove Salad`). The channel name is its public name, available
-on [this page][5].
+Two arguments must be provided to the application: an *action* (`display` or `save`) and a *channel*
+(e.g. `Groove Salad`). The channel name is its public name, available on [this page][soma-channels].
 
 ## `display` mode
 
 ### Configuration file
 
-Prepare a configuration file in [HOCON][6] format:
+Prepare a configuration file in [HOCON][hocon] format:
 
 ``` hocon
 config {
@@ -36,17 +35,17 @@ config {
 
 ### Option 1: Docker
 
-Run a container with the latest image:
+Run a container with the latest stable image:
 
 ``` shell
 docker run -it -v /absolute/path/to/application.conf:/application.conf alecigne/somafm-song-history:v0.4.0 "display" "Drone Zone"
 ```
 
-The Docker image is hosted on [DockerHub][7].
+The Docker image is hosted on [DockerHub][dockerhub].
 
 ### Option 2: Jar file
 
-[Download the jar][8] (or build it from source), then run:
+[Download the jar][jar] (or build it from source), then run:
 
 ``` shell
 java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "display" "Drone Zone"
@@ -56,8 +55,8 @@ java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "displ
 
 ### Database
 
-If you use `save` mode, you will need a PostgreSQL database. This can be achieved using Docker and
-the PostgreSQL official image:
+If you use `save` mode, you will need a self-hosted PostgreSQL database. This can be achieved using
+Docker and the PostgreSQL official image:
 
 ``` shell
 docker run \
@@ -67,7 +66,7 @@ docker run \
 -d postgres
 ```
 
-The default user is `postgres`.
+The default user is `postgres`. Maybe this [note][postgres-note] could be of interest for a few people.
 
 Alternatively, use the provided Docker compose file:
 
@@ -77,7 +76,7 @@ docker compose up -d db
 
 ### Configuration file
 
-Prepare a configuration file in [HOCON][7] format:
+Prepare a configuration file in [HOCON][hocon] format:
 
 ``` hocon
 config {
@@ -101,11 +100,11 @@ docker run -it -v /absolute/path/to/application.conf:/application.conf --net=hos
 
 Note the `--net=host` option.
 
-The Docker image is hosted on [DockerHub][8].
+The Docker image is hosted on [DockerHub][dockerhub].
 
 ## Option 2: Jar file
 
-[Download the jar][9] (or build it from source), then run:
+[Download the jar][jar] (or build it from source), then run:
 
 ``` shell
 java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "display" "Drone Zone"
@@ -113,24 +112,27 @@ java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "displ
 
 (with Java 17)
 
-# Known bugs
+[soma]:
+https://somafm.com
 
-Check them [here][9].
+[soma-support]:
+https://somafm.com/support/
 
-[1]: https://somafm.com
+[issues]:
+https://github.com/alecigne/somafm-song-history/issues
 
-[2]: https://somafm.com/support/
+[lib]:
+https://github.com/alecigne/somafm-recentlib
 
-[3]: https://github.com/alecigne/somafm-song-history/issues
+[soma-channels]:
+https://somafm.com/#alpha
 
-[4]: https://github.com/alecigne/somafm-recentlib
+[hocon]:
+https://github.com/lightbend/config/blob/main/HOCON.md
 
-[5]: https://somafm.com/#alpha
+[dockerhub]:
+https://hub.docker.com/r/alecigne/somafm-song-history
 
-[6]: https://github.com/lightbend/config/blob/main/HOCON.md
+[jar]: https://github.com/alecigne/somafm-song-history/releases/download/v0.4.0/somafm-song-history-0.4.0-with-dependencies.jar
 
-[7]: https://hub.docker.com/r/alecigne/somafm-song-history
-
-[8]: https://github.com/alecigne/somafm-song-history/releases/download/0.2.0/somafm-song-history-0.2.0.jar
-
-[9]: https://github.com/alecigne/somafm-song-history/issues?q=is%3Aopen+is%3Aissue+label%3Abug
+[postgres-note]: https://lecigne.net/notes/postgres-docker.html
