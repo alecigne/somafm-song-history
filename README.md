@@ -1,136 +1,113 @@
 # `somafm-song-history`
 
-Application that retrieves and prints [SomaFM][1]'s recently played songs in the console, or save it
-to a database.
+`somafm-song-history` is a Java application that retrieves and prints [SomaFM][soma]'s recently
+played songs in the console, or save it to a database.
 
-Please support SomaFM's awesome work [here][2].
+Please support SomaFM's awesome work [here][soma-support].
 
 # About
 
-This project is developed for my personal use, but I'll be glad to help if you encounter
-any [issue][3].
+This project is developed for my personal use, but I'll be glad to help if you encounter any
+[issue][issues].
 
 My goal is to build and browse a personal database of songs played by SomaFM, and as an ambient fan,
 especially Drone Zone.
 
-This project uses [somafm-recentlib][4].
+This project uses [somafm-recentlib][lib].
 
 # Usage
 
-Two arguments must be provided to the application: an *action* (`display` or `save`) and a
-*channel* (e.g. `Groove Salad`). The channel name is its public name, available
-on [this page][5].
+Two arguments must be provided to the application: an *action* (`display` or `save`) and a *channel*
+(e.g. `Groove Salad`). The channel name is its public name, available on [this page][soma-channels].
 
-## `display` mode
+## Using Docker
 
-### Configuration file
+The Docker image is hosted on [DockerHub][dockerhub].
 
-Prepare a configuration file in [HOCON][6] format:
-
-``` hocon
-config {
-  userAgent = "choose-a-user-agent"
-  timezone = "choose-a-timezone"
-}
-```
-
-### Option 1: Docker
-
-Run a container with the latest image:
+If you want to run everything with [the default config][config], simply run this for `display` mode:
 
 ``` shell
-docker run -it -v /absolute/path/to/application.conf:/application.conf alecigne/somafm-song-history:v0.4.0 "display" "Drone Zone"
+docker run --rm -it alecigne/somafm-song-history:v0.4.1 "display" "Drone Zone"
 ```
 
-The Docker image is hosted on [DockerHub][7].
-
-### Option 2: Jar file
-
-[Download the jar][8] (or build it from source), then run:
-
-``` shell
-java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "display" "Drone Zone"
-```
-
-## `save` mode
-
-### Database
-
-If you use `save` mode, you will need a PostgreSQL database. This can be achieved using Docker and
-the PostgreSQL official image:
-
-``` shell
-docker run \
---name somafm-song-history-db \
--e POSTGRES_PASSWORD=mysecretpassword \
--p 5432:5432 \
--d postgres
-```
-
-The default user is `postgres`.
-
-Alternatively, use the provided Docker compose file:
+For `save` mode, you will need a PostgreSQL database. You can spawn it using the provided Docker
+Compose file:
 
 ``` shell
 docker compose up -d db
 ```
 
-### Configuration file
+It will create a database matching the default config above. Then:
 
-Prepare a configuration file in [HOCON][7] format:
+``` shell
+docker run --rm -it --net=host alecigne/somafm-song-history:v0.4.1 "save" "Drone Zone"
+```
+
+`--net=host` is necessary to reach a local database.
+
+If you need your own config, typically to run the application as a service on your local network,
+prepare a file in [HOCON][hocon] format:
 
 ``` hocon
 config {
-  userAgent = "choose-a-user-agent"
-  timezone = "choose-a-timezone"
+  userAgent = "my-own-user-agent"
+  timezone = "my-own-timezone"
+  // This part is optional in display mode
   db {
-    url = "jdbc:postgresql://localhost:5432/postgres"
-    user = "postgres"
-    password = "mysecretpassword"
+    url = "jdbc:postgresql://[my-host]:[my-port]/my_own_db"
+    user = "user"
+    password = "password"
   }
 }
 ```
 
-### Option 1: Docker
-
-Run the container with your credentials of choice:
+Then pass the config to Docker with your chosen mode:
 
 ``` shell
-docker run -it -v /absolute/path/to/application.conf:/application.conf --net=host alecigne/somafm-song-history:v0.4.0 "display" "Drone Zone"
+docker run --rm -it -v /path/to/application.conf:/application.conf alecigne/somafm-song-history:v0.4.1 "display" "Drone Zone"
 ```
 
-Note the `--net=host` option.
+## Using a JAR file (Java 17)
 
-The Docker image is hosted on [DockerHub][8].
-
-## Option 2: Jar file
-
-[Download the jar][9] (or build it from source), then run:
+[Download the jar][jar] or build it from source. Use the commands above (Docker section) if you need
+a Postgres instance and/or a custom config file. Then:
 
 ``` shell
-java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "display" "Drone Zone"
+java -jar somafm-song-history.jar "display" "Drone Zone"
 ```
 
-(with Java 17)
+or
 
-# Known bugs
+``` shell
+java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "save" "Drone Zone"
+```
 
-Check them [here][9].
+[soma]:
+https://somafm.com
 
-[1]: https://somafm.com
+[soma-support]:
+https://somafm.com/support/
 
-[2]: https://somafm.com/support/
+[issues]:
+https://github.com/alecigne/somafm-song-history/issues
 
-[3]: https://github.com/alecigne/somafm-song-history/issues
+[lib]:
+https://github.com/alecigne/somafm-recentlib
 
-[4]: https://github.com/alecigne/somafm-recentlib
+[soma-channels]:
+https://somafm.com/#alpha
 
-[5]: https://somafm.com/#alpha
+[hocon]:
+https://github.com/lightbend/config/blob/main/HOCON.md
 
-[6]: https://github.com/lightbend/config/blob/main/HOCON.md
+[dockerhub]:
+https://hub.docker.com/r/alecigne/somafm-song-history
 
-[7]: https://hub.docker.com/r/alecigne/somafm-song-history
+[jar]:
+https://github.com/alecigne/somafm-song-history/releases/download/v0.4.1/somafm-song-history-with-dependencies.jar
 
-[8]: https://github.com/alecigne/somafm-song-history/releases/download/0.2.0/somafm-song-history-0.2.0.jar
+[postgres-note]:
+https://lecigne.net/notes/postgres-docker.html
 
-[9]: https://github.com/alecigne/somafm-song-history/issues?q=is%3Aopen+is%3Aissue+label%3Abug
+[config]:
+https://github.com/alecigne/somafm-song-history/blob/master/src/main/resources/application.conf

@@ -48,7 +48,7 @@ public class CLI {
   private void doAndDisplay(Channel channel, Function<Channel, List<Broadcast>> action) {
     action.apply(channel)
         .stream()
-        .sorted(Comparator.comparing(Broadcast::getTime).reversed())
+        .sorted(Comparator.comparing(Broadcast::time).reversed())
         .map(displayedBroadcastMapper::map)
         .forEach(System.out::println);
   }

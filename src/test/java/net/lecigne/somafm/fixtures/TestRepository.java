@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
+import net.lecigne.somafm.recentlib.Artist;
 import net.lecigne.somafm.recentlib.Broadcast;
 import net.lecigne.somafm.recentlib.PredefinedChannel;
 import net.lecigne.somafm.recentlib.Song;
@@ -36,7 +37,7 @@ public class TestRepository {
             .time(time.toInstant())
             .channel(PredefinedChannel.getByPublicName(channel).orElseThrow())
             .song(Song.builder()
-                .artist(artist)
+                .artist(Artist.builder().name(artist).build())
                 .title(title)
                 .album(album)
                 .build()).build();
@@ -59,7 +60,7 @@ public class TestRepository {
         var title = resultSet.getString(2);
         var album = resultSet.getString(3);
         var song = Song.builder()
-            .artist(artist)
+            .artist(Artist.builder().name(artist).build())
             .title(title)
             .album(album)
             .build();

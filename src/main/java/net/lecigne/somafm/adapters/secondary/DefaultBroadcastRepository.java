@@ -12,6 +12,7 @@ import net.lecigne.somafm.application.spi.SomaFmSongHistorySpi;
 import net.lecigne.somafm.recentlib.Broadcast;
 import net.lecigne.somafm.recentlib.Channel;
 import net.lecigne.somafm.recentlib.SomaFm;
+import net.lecigne.somafm.recentlib.Song;
 
 /**
  * Handle most recent SomaFM broadcasts for a given channel.
@@ -57,14 +58,17 @@ public class DefaultBroadcastRepository implements SomaFmSongHistorySpi {
     try (Connection connection = dataSource.getConnection();
         PreparedStatement statement = connection.prepareStatement(sql)) {
       for (Broadcast broadcast : broadcasts) {
-        statement.setString(1, broadcast.getSong().getArtist());
-        statement.setString(2, broadcast.getSong().getTitle());
-        statement.setString(3, broadcast.getSong().getAlbum());
-        statement.setString(4, broadcast.getSong().getArtist());
-        statement.setString(5, broadcast.getSong().getTitle());
-        statement.setString(6, broadcast.getSong().getAlbum());
-        statement.setTimestamp(7, Timestamp.from(broadcast.getTime()));
-        statement.setString(8, broadcast.getChannel().publicName());
+        Song song = broadcast.song();
+        String artistName = (song.artist() == null || song.artist().name() == null) ? "n/a" : song.artist().name();
+        String albumName = song.album() == null ? "n/a" : song.album();
+        statement.setString(1, artistName);
+        statement.setString(2, song.title());
+        statement.setString(3, albumName);
+        statement.setString(4, artistName);
+        statement.setString(5, song.title());
+        statement.setString(6, albumName);
+        statement.setTimestamp(7, Timestamp.from(broadcast.time()));
+        statement.setString(8, broadcast.channel().publicName());
         statement.addBatch();
       }
       statement.executeBatch();
