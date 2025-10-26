@@ -55,24 +55,27 @@ java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "displ
 
 ### Database
 
-If you use `save` mode, you will need a self-hosted PostgreSQL database. This can be achieved using
-Docker and the PostgreSQL official image:
+If you use `save` mode, you will need a self-hosted PostgreSQL database.
 
-``` shell
-docker run \
---name somafm-song-history-db \
--e POSTGRES_PASSWORD=mysecretpassword \
--p 5432:5432 \
--d postgres
-```
-
-The default user is `postgres`. Maybe this [note][postgres-note] could be of interest for a few people.
-
-Alternatively, use the provided Docker compose file:
+This can be achieved using the provided Docker Compose file:
 
 ``` shell
 docker compose up -d db
 ```
+
+Alternatively:
+
+``` shell
+docker run \
+--name somafm-song-history-db \
+-e POSTGRES_USER=somafm \
+-e POSTGRES_PASSWORD=password \
+-e POSTGRES_DB=somafm \
+-p 5432:5432 \
+-d postgres
+```
+
+Maybe this [note][postgres-note] could be of interest for a few people.
 
 ### Configuration file
 
@@ -95,7 +98,7 @@ config {
 Run the container with your credentials of choice:
 
 ``` shell
-docker run -it -v /absolute/path/to/application.conf:/application.conf --net=host alecigne/somafm-song-history:v0.4.0 "display" "Drone Zone"
+docker run -it -v /absolute/path/to/application.conf:/application.conf --net=host alecigne/somafm-song-history:v0.4.0 "save" "Drone Zone"
 ```
 
 Note the `--net=host` option.
@@ -107,7 +110,7 @@ The Docker image is hosted on [DockerHub][dockerhub].
 [Download the jar][jar] (or build it from source), then run:
 
 ``` shell
-java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "display" "Drone Zone"
+java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "save" "Drone Zone"
 ```
 
 (with Java 17)

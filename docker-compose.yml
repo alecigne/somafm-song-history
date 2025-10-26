@@ -4,13 +4,13 @@ services:
     container_name: somafm-song-history-db
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: mysecretpassword
-      POSTGRES_DB: postgres
+      POSTGRES_USER: somafm
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: somafm
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
 
   app:
     build: .
