@@ -20,100 +20,67 @@ This project uses [somafm-recentlib][lib].
 Two arguments must be provided to the application: an *action* (`display` or `save`) and a *channel*
 (e.g. `Groove Salad`). The channel name is its public name, available on [this page][soma-channels].
 
-## `display` mode
-
-### Configuration file
-
-Prepare a configuration file in [HOCON][hocon] format:
-
-``` hocon
-config {
-  userAgent = "choose-a-user-agent"
-  timezone = "choose-a-timezone"
-}
-```
-
-### Option 1: Docker
-
-Run a container with the latest stable image:
-
-``` shell
-docker run -it -v /absolute/path/to/application.conf:/application.conf alecigne/somafm-song-history:v0.4.0 "display" "Drone Zone"
-```
+## Using Docker
 
 The Docker image is hosted on [DockerHub][dockerhub].
 
-### Option 2: Jar file
-
-[Download the jar][jar] (or build it from source), then run:
+If you want to run everything with [the default config][config], simply run this for `display` mode:
 
 ``` shell
-java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "display" "Drone Zone"
+docker run --rm -it alecigne/somafm-song-history:v0.4.1 "display" "Drone Zone"
 ```
 
-## `save` mode
-
-### Database
-
-If you use `save` mode, you will need a self-hosted PostgreSQL database.
-
-This can be achieved using the provided Docker Compose file:
+For `save` mode, you will need a PostgreSQL database. You can spawn it using the provided Docker
+Compose file:
 
 ``` shell
 docker compose up -d db
 ```
 
-Alternatively:
+It will create a database matching the default config above. Then:
 
 ``` shell
-docker run \
---name somafm-song-history-db \
--e POSTGRES_USER=somafm \
--e POSTGRES_PASSWORD=password \
--e POSTGRES_DB=somafm \
--p 5432:5432 \
--d postgres
+docker run --rm -it --net=host alecigne/somafm-song-history:v0.4.1 "save" "Drone Zone"
 ```
 
-Maybe this [note][postgres-note] could be of interest for a few people.
+`--net=host` is necessary to reach a local database.
 
-### Configuration file
-
-Prepare a configuration file in [HOCON][hocon] format:
+If you need your own config, typically to run the application as a service on your local network,
+prepare a file in [HOCON][hocon] format:
 
 ``` hocon
 config {
-  userAgent = "choose-a-user-agent"
-  timezone = "choose-a-timezone"
+  userAgent = "my-own-user-agent"
+  timezone = "my-own-timezone"
+  // This part is optional in display mode
   db {
-    url = "jdbc:postgresql://localhost:5432/postgres"
-    user = "postgres"
-    password = "mysecretpassword"
+    url = "jdbc:postgresql://[my-host]:[my-port]/my_own_db"
+    user = "user"
+    password = "password"
   }
 }
 ```
 
-### Option 1: Docker
-
-Run the container with your credentials of choice:
+Then pass the config to Docker with your chosen mode:
 
 ``` shell
-docker run -it -v /absolute/path/to/application.conf:/application.conf --net=host alecigne/somafm-song-history:v0.4.0 "save" "Drone Zone"
+docker run --rm -it -v /path/to/application.conf:/application.conf alecigne/somafm-song-history:v0.4.1 "display" "Drone Zone"
 ```
 
-Note the `--net=host` option.
+## Using a JAR file (Java 17)
 
-The Docker image is hosted on [DockerHub][dockerhub].
+[Download the jar][jar] or build it from source. Use the commands above (Docker section) if you need
+a Postgres instance and/or a custom config file. Then:
 
-## Option 2: Jar file
+``` shell
+java -jar somafm-song-history.jar "display" "Drone Zone"
+```
 
-[Download the jar][jar] (or build it from source), then run:
+or
 
 ``` shell
 java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "save" "Drone Zone"
 ```
-
-(with Java 17)
 
 [soma]:
 https://somafm.com
@@ -136,6 +103,11 @@ https://github.com/lightbend/config/blob/main/HOCON.md
 [dockerhub]:
 https://hub.docker.com/r/alecigne/somafm-song-history
 
-[jar]: https://github.com/alecigne/somafm-song-history/releases/download/v0.4.0/somafm-song-history-0.4.0-with-dependencies.jar
+[jar]:
+https://github.com/alecigne/somafm-song-history/releases/download/v0.4.1/somafm-song-history-with-dependencies.jar
 
-[postgres-note]: https://lecigne.net/notes/postgres-docker.html
+[postgres-note]:
+https://lecigne.net/notes/postgres-docker.html
+
+[config]:
+https://github.com/alecigne/somafm-song-history/blob/master/src/main/resources/application.conf
