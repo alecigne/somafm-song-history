@@ -22,21 +22,8 @@
 
   <repositories>
     <repository>
-      <id>central</id>
-      <url>https://repo.maven.apache.org/maven2</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>local-repo</id>
-      <url>file://${project.basedir}/lib/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
     </repository>
   </repositories>
 
@@ -45,7 +32,7 @@
       <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>testcontainers-bom</artifactId>
-        <version>1.21.3</version>
+        <version>2.0.3</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -62,9 +49,9 @@
   <dependencies>
     <!-- Lib -->
     <dependency>
-      <groupId>net.lecigne</groupId>
+      <groupId>com.github.alecigne.somafm-recentlib</groupId>
       <artifactId>somafm-recentlib</artifactId>
-      <version>0.2.2</version>
+      <version>v0.2.3</version>
     </dependency>
     <!-- Persistence -->
     <dependency>
@@ -159,12 +146,12 @@
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>junit-jupiter</artifactId>
+      <artifactId>testcontainers-junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>postgresql</artifactId>
+      <artifactId>testcontainers-postgresql</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -228,7 +215,7 @@
             <configuration>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>net.lecigne.somafm.SomaFmSongHistory</mainClass>
+                  <mainClass>net.lecigne.somafm.history.bootstrap.Main</mainClass>
                 </transformer>
                 <!-- Necessary plugins are not added to META-INF/services/org.flywaydb.core.extensibility.Plugin when building a fat jar -->
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
