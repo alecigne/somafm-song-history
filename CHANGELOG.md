@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.5.0](https://github.com/alecigne/somafm-song-history/tree/v0.5.0) - 2026-02-21
+
+- Refactor the code.
+- Update to Java 21 and update dependencies.
+
 ## [v0.4.1](https://github.com/alecigne/somafm-song-history/tree/v0.4.1) - 2025-10-26
 
 - Update dependencies.
