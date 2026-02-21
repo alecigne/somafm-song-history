@@ -3,6 +3,8 @@
 `somafm-song-history` is a Java application that retrieves and prints [SomaFM][soma]'s recently
 played songs in the console, or save it to a database.
 
+Current version is v0.5.0.
+
 Please support SomaFM's awesome work [here][soma-support].
 
 # About
@@ -13,12 +15,13 @@ This project is developed for my personal use, but I'll be glad to help if you e
 My goal is to build and browse a personal database of songs played by SomaFM, and as an ambient fan,
 especially Drone Zone.
 
-This project uses [somafm-recentlib][lib].
+This project uses [somafm-recentlib][lib] through [JitPack][jitpack].
 
 # Usage
 
-Two arguments must be provided to the application: an *action* (`display` or `save`) and a *channel*
-(e.g. `Groove Salad`). The channel name is its public name, available on [this page][soma-channels].
+A REST API is planned for v0.6.0. For now, `somafm-song-history` is a CLI application that receives
+2 arguments: an *action* (`display` or `save`) and a *channel* (e.g. `Groove Salad`). The channel
+name is its public name, available on [this page][soma-channels].
 
 ## Using Docker
 
@@ -27,7 +30,7 @@ The Docker image is hosted on [DockerHub][dockerhub].
 If you want to run everything with [the default config][config], simply run this for `display` mode:
 
 ``` shell
-docker run --rm -it alecigne/somafm-song-history:v0.4.1 "display" "Drone Zone"
+docker run --rm -it alecigne/somafm-song-history:v0.5.0 "display" "Drone Zone"
 ```
 
 For `save` mode, you will need a PostgreSQL database. You can spawn it using the provided Docker
@@ -40,10 +43,8 @@ docker compose up -d db
 It will create a database matching the default config above. Then:
 
 ``` shell
-docker run --rm -it --net=host alecigne/somafm-song-history:v0.4.1 "save" "Drone Zone"
+docker run --rm -it alecigne/somafm-song-history:v0.5.0 "save" "Drone Zone"
 ```
-
-`--net=host` is necessary to reach a local database.
 
 If you need your own config, typically to run the application as a service on your local network,
 prepare a file in [HOCON][hocon] format:
@@ -64,13 +65,13 @@ config {
 Then pass the config to Docker with your chosen mode:
 
 ``` shell
-docker run --rm -it -v /path/to/application.conf:/application.conf alecigne/somafm-song-history:v0.4.1 "display" "Drone Zone"
+docker run --rm -it --net=host -v /path/to/application.conf:/application.conf alecigne/somafm-song-history:v0.5.0 "display" "Drone Zone"
 ```
 
-## Using a JAR file (Java 17)
+## Using a JAR file (Java 21)
 
-[Download the jar][jar] or build it from source. Use the commands above (Docker section) if you need
-a Postgres instance and/or a custom config file. Then:
+Grab a Jar from the [releases][releases] section or build it from source. Use the commands above
+(Docker section) if you need a Postgres instance and/or a custom config file. Then:
 
 ``` shell
 java -jar somafm-song-history.jar "display" "Drone Zone"
@@ -81,6 +82,7 @@ or
 ``` shell
 java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "save" "Drone Zone"
 ```
+
 
 [soma]:
 https://somafm.com
@@ -103,11 +105,14 @@ https://github.com/lightbend/config/blob/main/HOCON.md
 [dockerhub]:
 https://hub.docker.com/r/alecigne/somafm-song-history
 
-[jar]:
-https://github.com/alecigne/somafm-song-history/releases/download/v0.4.1/somafm-song-history-with-dependencies.jar
+[releases]:
+https://github.com/alecigne/somafm-song-history/releases
 
 [postgres-note]:
 https://lecigne.net/notes/postgres-docker.html
 
 [config]:
 https://github.com/alecigne/somafm-song-history/blob/master/src/main/resources/application.conf
+
+[jitpack]:
+https://jitpack.io/
