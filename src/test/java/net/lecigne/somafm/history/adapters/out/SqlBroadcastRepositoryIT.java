@@ -137,4 +137,39 @@ class SqlBroadcastRepositoryIT {
         .containsExactlyInAnyOrder(dirkSerriesSongFixture());
   }
 
+  @Test
+  void should_get_broadcasts_with_pagination() {
+    // Given
+    Broadcast oldest = Broadcast.builder()
+        .time(Instant.parse("2021-01-01T11:36:43.123Z"))
+        .channel(DRONE_ZONE)
+        .song(dirkSerriesSongFixture())
+        .build();
+    Broadcast middle = Broadcast.builder()
+        .time(Instant.parse("2021-01-01T11:45:37.967Z"))
+        .channel(DRONE_ZONE)
+        .song(igneousFlameSongFixture())
+        .build();
+    Broadcast newest = Broadcast.builder()
+        .time(Instant.parse("2021-01-01T11:50:00.000Z"))
+        .channel(DRONE_ZONE)
+        .song(igneousFlameSongFixture())
+        .build();
+    repository.updateBroadcasts(List.of(oldest, middle, newest));
+
+    // When
+    List<Broadcast> firstPage = repository.getBroadcasts(1, 2);
+    List<Broadcast> secondPage = repository.getBroadcasts(2, 2);
+    long total = repository.countBroadcasts();
+
+    // Then
+    assertThat(firstPage)
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(newest, middle);
+    assertThat(secondPage)
+        .usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(oldest);
+    assertThat(total).isEqualTo(3);
+  }
+
 }

@@ -2,11 +2,11 @@ package net.lecigne.somafm.history.adapters.in.cli;
 
 import java.time.ZoneId;
 import lombok.extern.slf4j.Slf4j;
-import net.lecigne.somafm.history.application.ports.in.SomaFmSongHistory;
+import net.lecigne.somafm.history.application.ports.in.RunCommandUseCase;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig;
-import net.lecigne.somafm.history.domain.Action;
-import net.lecigne.somafm.history.domain.SomaFmCommand;
-import net.lecigne.somafm.history.domain.UnknownChannelException;
+import net.lecigne.somafm.history.domain.model.Mode;
+import net.lecigne.somafm.history.domain.model.SomaFmCommand;
+import net.lecigne.somafm.history.domain.model.UnknownChannelException;
 import net.lecigne.somafm.recentlib.Channel;
 import net.lecigne.somafm.recentlib.PredefinedChannel;
 import net.lecigne.somafm.recentlib.SomaFmException;
@@ -15,11 +15,11 @@ import net.lecigne.somafm.recentlib.SomaFmException;
 @SuppressWarnings("java:S106") // OK to log with System.out here
 public class CLI {
 
-  private final SomaFmSongHistory api;
+  private final RunCommandUseCase runCommandUseCase;
   private final DisplayedBroadcastMapper displayedBroadcastMapper;
 
-  CLI(SomaFmSongHistory api, DisplayedBroadcastMapper displayedBroadcastMapper) {
-    this.api = api;
+  CLI(RunCommandUseCase runCommandUseCase, DisplayedBroadcastMapper displayedBroadcastMapper) {
+    this.runCommandUseCase = runCommandUseCase;
     this.displayedBroadcastMapper = displayedBroadcastMapper;
   }
 
@@ -29,13 +29,13 @@ public class CLI {
         log.error("You must enter 2 arguments: action and channel.");
         return;
       }
-      Action action = Action.getValue(args[0]);
+      Mode mode = Mode.getValue(args[0]);
       Channel channel = PredefinedChannel.getByPublicName(args[1])
                                          .orElseThrow(() -> new UnknownChannelException(args[1]));
-      api.run(new SomaFmCommand(action, channel))
-         .stream()
-         .map(displayedBroadcastMapper::map)
-         .forEach(System.out::println);
+      runCommandUseCase.run(new SomaFmCommand(mode, channel))
+                       .stream()
+                       .map(displayedBroadcastMapper::map)
+                       .forEach(System.out::println);
     } catch (UnknownChannelException e) {
       log.error("Unknown channel: {}", args[1]);
     } catch (SomaFmException e) {
@@ -45,7 +45,7 @@ public class CLI {
     }
   }
 
-  public static CLI init(SomaFmSongHistory api, SomaFmConfig somaFmConfig) {
+  public static CLI init(RunCommandUseCase api, SomaFmConfig somaFmConfig) {
     return new CLI(api, new DisplayedBroadcastMapper(ZoneId.of(somaFmConfig.getTimezone())));
   }
 

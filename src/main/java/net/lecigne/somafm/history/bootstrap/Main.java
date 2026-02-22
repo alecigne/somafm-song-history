@@ -2,20 +2,26 @@ package net.lecigne.somafm.history.bootstrap;
 
 import static net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.ROOT_CONFIG;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigBeanFactory;
 import com.typesafe.config.ConfigFactory;
+import io.javalin.Javalin;
+import io.javalin.json.JavalinJackson;
 import lombok.extern.slf4j.Slf4j;
 import net.lecigne.somafm.history.adapters.in.cli.CLI;
+import net.lecigne.somafm.history.adapters.in.rest.JavalinRestController;
 import net.lecigne.somafm.history.adapters.out.HtmlSomaFmRepository;
 import net.lecigne.somafm.history.adapters.out.SqlBroadcastRepository;
-import net.lecigne.somafm.history.application.ports.in.SomaFmSongHistory;
+import net.lecigne.somafm.history.application.ports.in.GetBroadcastsUseCase;
+import net.lecigne.somafm.history.application.ports.in.RunCommandUseCase;
 import net.lecigne.somafm.history.application.ports.out.BroadcastRepository;
 import net.lecigne.somafm.history.application.ports.out.SomaFmRepository;
-import net.lecigne.somafm.history.application.services.DefaultSomaFmSongHistory;
+import net.lecigne.somafm.history.application.services.SomaFmSongHistoryService;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.DbConfig;
-import net.lecigne.somafm.history.domain.Action;
+import net.lecigne.somafm.history.domain.model.Mode;
 import net.lecigne.somafm.recentlib.SomaFm;
 import org.flywaydb.core.Flyway;
 
@@ -23,24 +29,32 @@ import org.flywaydb.core.Flyway;
 public class Main {
 
   public static void main(String[] args) {
+    if (args.length == 0) {
+      log.error("You must enter at least 1 argument: mode.");
+      return;
+    }
     Config config = ConfigFactory.load();
     SomaFmConfig somaFmConfig = ConfigBeanFactory.create(config.getConfig(ROOT_CONFIG), SomaFmConfig.class);
-    Action action = Action.getValue(args[0]);
+    if ("api".equalsIgnoreCase(args[0])) {
+      runApiServer(somaFmConfig);
+      return;
+    }
+    Mode mode = Mode.getValue(args[0]);
     BroadcastRepository broadcastRepository = null;
-    if (Action.SAVE.equals(action)) {
+    if (Mode.SAVE.equals(mode)) {
       initDb(somaFmConfig);
       broadcastRepository = SqlBroadcastRepository.init(somaFmConfig);
     }
     SomaFm somaFmClient = SomaFm.of(somaFmConfig.getUserAgent());
     SomaFmRepository somaFmRepo = HtmlSomaFmRepository.init(somaFmClient);
-    SomaFmSongHistory api = DefaultSomaFmSongHistory.init(broadcastRepository, somaFmRepo);
-    CLI cli = CLI.init(api, somaFmConfig);
+    RunCommandUseCase runCommandUseCase = SomaFmSongHistoryService.init(broadcastRepository, somaFmRepo);
+    CLI cli = CLI.init(runCommandUseCase, somaFmConfig);
     cli.run(args);
   }
 
   private static void initDb(SomaFmConfig somaFmConfig) {
     if (!somaFmConfig.isDbActivated()) {
-      log.error("SAVE mode requires db config! Exiting.");
+      log.error("DB-backed modes require db config! Exiting.");
       System.exit(1);
     } else {
       DbConfig db = somaFmConfig.getDb();
@@ -49,6 +63,23 @@ public class Main {
           .load()
           .migrate();
     }
+  }
+
+  private static void runApiServer(SomaFmConfig somaFmConfig) {
+    initDb(somaFmConfig);
+    BroadcastRepository broadcastRepository = SqlBroadcastRepository.init(somaFmConfig);
+    SomaFm somaFmClient = SomaFm.of(somaFmConfig.getUserAgent());
+    SomaFmRepository somaFmRepo = HtmlSomaFmRepository.init(somaFmClient);
+    SomaFmSongHistoryService service = SomaFmSongHistoryService.init(broadcastRepository, somaFmRepo);
+    Javalin apiServer = Javalin.create(config -> config.jsonMapper(
+        new JavalinJackson().updateMapper(mapper -> {
+          mapper.registerModule(new JavaTimeModule());
+          mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        })));
+    JavalinRestController javalinRestController = JavalinRestController.init(service, service);
+    javalinRestController.registerRoutes(apiServer);
+    apiServer.start(7070);
+    log.info("API server started on port 7070");
   }
 
 }

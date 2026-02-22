@@ -24,7 +24,7 @@ public class HtmlSomaFmRepository implements SomaFmRepository {
   /**
    * Fetch recent broadcasts from SomaFM.
    */
-  public List<Broadcast> getRecentBroadcasts(Channel channel) {
+  public List<Broadcast> fetchRecentBroadcasts(Channel channel) {
     return somaFmClient.fetchRecent(channel);
   }
 

@@ -4,20 +4,21 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import net.lecigne.somafm.history.application.ports.out.BroadcastRepository;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.DbConfig;
+import net.lecigne.somafm.recentlib.Artist;
 import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.recentlib.PredefinedChannel;
 import net.lecigne.somafm.recentlib.Song;
 
-/**
- * Handle most recent SomaFM broadcasts for a given channel.
- */
 @Slf4j
 public class SqlBroadcastRepository implements BroadcastRepository {
 
@@ -25,6 +26,48 @@ public class SqlBroadcastRepository implements BroadcastRepository {
 
   SqlBroadcastRepository(DataSource dataSource) {
     this.dataSource = dataSource;
+  }
+
+  @Override
+  public long countBroadcasts() {
+    var sql = "SELECT COUNT(*) FROM broadcasts";
+    try (Connection connection = dataSource.getConnection();
+        PreparedStatement statement = connection.prepareStatement(sql);
+        ResultSet resultSet = statement.executeQuery()) {
+      if (resultSet.next()) {
+        return resultSet.getLong(1);
+      }
+      return 0;
+    } catch (SQLException e) {
+      log.error("Error while counting broadcasts", e);
+      throw new IllegalStateException("Could not count broadcasts in database", e);
+    }
+  }
+
+  @Override
+  public List<Broadcast> getBroadcasts(int page, int size) {
+    var sql = """
+        SELECT broadcasts.utc_time, broadcasts.channel, songs.artist, songs.title, songs.album
+        FROM broadcasts
+        JOIN songs ON broadcasts.song_id = songs.id
+        ORDER BY broadcasts.utc_time DESC, broadcasts.id DESC
+        LIMIT ? OFFSET ?;""";
+    int offset = (page - 1) * size;
+    List<Broadcast> broadcasts = new ArrayList<>();
+    try (Connection connection = dataSource.getConnection();
+        PreparedStatement statement = connection.prepareStatement(sql)) {
+      statement.setInt(1, size);
+      statement.setInt(2, offset);
+      try (ResultSet resultSet = statement.executeQuery()) {
+        while (resultSet.next()) {
+          broadcasts.add(mapBroadcast(resultSet));
+        }
+      }
+      return broadcasts;
+    } catch (SQLException e) {
+      log.error("Error while reading broadcasts page {} with size {}", page, size, e);
+      throw new IllegalStateException("Could not read broadcasts from database", e);
+    }
   }
 
   /**
@@ -70,6 +113,22 @@ public class SqlBroadcastRepository implements BroadcastRepository {
     } catch (SQLException e) {
       log.error("Error", e);
     }
+  }
+
+  private Broadcast mapBroadcast(ResultSet resultSet) throws SQLException {
+    String channelName = resultSet.getString("channel");
+    var channel = PredefinedChannel
+        .getByPublicName(channelName)
+        .orElseThrow(() -> new IllegalStateException("Unknown channel in database: " + channelName));
+    return Broadcast.builder()
+        .time(resultSet.getTimestamp("utc_time").toInstant())
+        .channel(channel)
+        .song(Song.builder()
+            .artist(Artist.builder().name(resultSet.getString("artist")).build())
+            .title(resultSet.getString("title"))
+            .album(resultSet.getString("album"))
+            .build())
+        .build();
   }
 
   public static BroadcastRepository init(SomaFmConfig config) {

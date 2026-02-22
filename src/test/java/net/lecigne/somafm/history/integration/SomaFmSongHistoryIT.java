@@ -14,10 +14,10 @@ import java.util.List;
 import net.lecigne.somafm.history.adapters.in.cli.CLI;
 import net.lecigne.somafm.history.adapters.out.HtmlSomaFmRepository;
 import net.lecigne.somafm.history.adapters.out.SqlBroadcastRepository;
-import net.lecigne.somafm.history.application.ports.in.SomaFmSongHistory;
+import net.lecigne.somafm.history.application.ports.in.RunCommandUseCase;
 import net.lecigne.somafm.history.application.ports.out.BroadcastRepository;
 import net.lecigne.somafm.history.application.ports.out.SomaFmRepository;
-import net.lecigne.somafm.history.application.services.DefaultSomaFmSongHistory;
+import net.lecigne.somafm.history.application.services.SomaFmSongHistoryService;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig;
 import net.lecigne.somafm.history.fixtures.TestRepository;
 import net.lecigne.somafm.recentlib.Broadcast;
@@ -69,7 +69,7 @@ class SomaFmSongHistoryIT {
     somaFmConfig.setTimezone("Europe/Paris");
     SomaFmRepository somaFmRepository = HtmlSomaFmRepository.init(somaFm);
     BroadcastRepository repository = SqlBroadcastRepository.init(hikariDataSource);
-    SomaFmSongHistory init = DefaultSomaFmSongHistory.init(repository, somaFmRepository);
+    RunCommandUseCase init = SomaFmSongHistoryService.init(repository, somaFmRepository);
     testRepo = new TestRepository(hikariDataSource);
     cli = CLI.init(init, somaFmConfig);
   }
