@@ -26,10 +26,6 @@ public class SomaFmSongHistoryService implements
   private final BroadcastRepository broadcastRepo;
   private final PageRequestValidator pageRequestValidator;
 
-  SomaFmSongHistoryService(SomaFmRepository somaFmRepo, BroadcastRepository broadcastRepo) {
-    this(somaFmRepo, broadcastRepo, PageRequestValidator.defaultValidator());
-  }
-
   SomaFmSongHistoryService(
       SomaFmRepository somaFmRepo,
       BroadcastRepository broadcastRepo,
@@ -37,6 +33,10 @@ public class SomaFmSongHistoryService implements
     this.somaFmRepo = somaFmRepo;
     this.broadcastRepo = broadcastRepo;
     this.pageRequestValidator = pageRequestValidator;
+  }
+
+  SomaFmSongHistoryService(SomaFmRepository somaFmRepo, BroadcastRepository broadcastRepo) {
+    this(somaFmRepo, broadcastRepo, PageRequestValidator.defaultValidator());
   }
 
   // TODO Get rid of this

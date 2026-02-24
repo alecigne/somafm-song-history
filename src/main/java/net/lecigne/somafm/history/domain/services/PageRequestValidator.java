@@ -2,7 +2,7 @@ package net.lecigne.somafm.history.domain.services;
 
 public class PageRequestValidator {
 
-  private static final int DEFAULT_MAX_PAGE_SIZE = 200;
+  private static final int DEFAULT_MAX_PAGE_SIZE = 50;
 
   private final int maxPageSize;
 

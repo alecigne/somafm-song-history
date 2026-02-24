@@ -4,8 +4,9 @@ import static net.lecigne.somafm.history.fixtures.TestFixtures.breakSongFixture;
 import static net.lecigne.somafm.history.fixtures.TestFixtures.dirkSerriesSongFixture;
 import static net.lecigne.somafm.history.fixtures.TestFixtures.igneousFlameSongFixture;
 import static net.lecigne.somafm.recentlib.PredefinedChannel.DRONE_ZONE;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
 
 import java.time.Instant;
 import java.util.List;
@@ -13,14 +14,74 @@ import java.util.concurrent.atomic.AtomicReference;
 import net.lecigne.somafm.history.application.ports.out.BroadcastRepository;
 import net.lecigne.somafm.history.application.ports.out.SomaFmRepository;
 import net.lecigne.somafm.history.domain.model.Mode;
+import net.lecigne.somafm.history.domain.model.Page;
 import net.lecigne.somafm.history.domain.model.SomaFmCommand;
+import net.lecigne.somafm.history.fixtures.TestFixtures;
 import net.lecigne.somafm.recentlib.Broadcast;
 import net.lecigne.somafm.recentlib.Song;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 @DisplayName("The recent broadcast business")
 class SomaFmSongHistoryServiceTest {
+
+  private final SomaFmRepository somaFmRepo = Mockito.mock(SomaFmRepository.class);
+  private final BroadcastRepository broadcastRepo = Mockito.mock(BroadcastRepository.class);
+  private final SomaFmSongHistoryService service = new SomaFmSongHistoryService(somaFmRepo, broadcastRepo);
+
+  @AfterEach
+  void tearDown() {
+    Mockito.reset(somaFmRepo, broadcastRepo);
+  }
+
+  @Nested
+  class when_retrieving_broadcasts {
+
+    @Test
+    void should_get_paginated_broadcasts() {
+      // Given
+      var totalElements = 17L;
+      given(broadcastRepo.countBroadcasts()).willReturn(totalElements);
+
+      var page = 1;
+      var size = 2;
+      List<Broadcast> broadcasts = List.of(
+          broadcastAt("2021-01-01T11:00:00.00Z", TestFixtures.dirkSerriesSongFixture()),
+          broadcastAt("2021-01-01T11:10:00.00Z", TestFixtures.igneousFlameSongFixture()));
+      given(broadcastRepo.getBroadcasts(page, size)).willReturn(broadcasts);
+
+      var expectedSize = 9; // 17 results, 2 per page -> 9 pages
+      Page<Broadcast> broadcastPage = new Page<>(page, size, totalElements, expectedSize, broadcasts);
+
+      // When
+      Page<Broadcast> result = service.getBroadcasts(page, size);
+
+      // Then
+      assertThat(result).usingRecursiveComparison().isEqualTo(broadcastPage);
+    }
+
+    // See validator unit tests for specific cases
+    @Test
+    void should_propagate_validation_error() {
+      // Given
+      var page = 1;
+      var size = 51;
+      var errMsg = "size must be <= 50";
+
+      // "When"
+      ThrowingCallable call = () -> service.getBroadcasts(page, size);
+
+      // Then
+      assertThatThrownBy(call)
+          .isInstanceOf(IllegalArgumentException.class)
+          .hasMessage(errMsg);
+    }
+
+  }
 
   @Test
   void should_fetch_and_sort_recent_broadcasts_with_display_action() {
@@ -138,10 +199,10 @@ class SomaFmSongHistoryServiceTest {
 
   private static Broadcast broadcastAt(String time, Song song) {
     return Broadcast.builder()
-                    .time(Instant.parse(time))
-                    .channel(DRONE_ZONE)
-                    .song(song)
-                    .build();
+        .time(Instant.parse(time))
+        .channel(DRONE_ZONE)
+        .song(song)
+        .build();
   }
 
 }
