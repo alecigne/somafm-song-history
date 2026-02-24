@@ -12,6 +12,7 @@ import net.lecigne.somafm.history.application.ports.in.FetchRecentBroadcastsUseC
 import net.lecigne.somafm.history.application.ports.in.GetBroadcastsUseCase;
 import net.lecigne.somafm.history.domain.model.Page;
 import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.recentlib.Channel;
 import net.lecigne.somafm.recentlib.PredefinedChannel;
 
 public class JavalinRestController {
@@ -42,8 +43,10 @@ public class JavalinRestController {
   }
 
   private void fetchRecentBroadcasts(Context ctx) {
+    String channelAsString = ctx.queryParam("channel");
+    Channel channel = PredefinedChannel.getByInternalName(channelAsString).orElseThrow();
     try {
-      List<Broadcast> broadcasts = fetchRecentBroadcastsUseCase.fetchRecent(PredefinedChannel.DRONE_ZONE);
+      List<Broadcast> broadcasts = fetchRecentBroadcastsUseCase.fetchRecent(channel);
       ctx.json(broadcasts.stream().map(BroadcastResponseDto::from).toList());
     } catch (IllegalArgumentException e) {
       throw new BadRequestResponse(e.getMessage());
