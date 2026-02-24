@@ -5,5 +5,5 @@ import net.lecigne.somafm.recentlib.Broadcast;
 import net.lecigne.somafm.recentlib.Channel;
 
 public interface SaveRecentBroadcastsUseCase {
-  List<Broadcast> save(Channel channel);
+  List<Broadcast> saveRecent(Channel channel);
 }

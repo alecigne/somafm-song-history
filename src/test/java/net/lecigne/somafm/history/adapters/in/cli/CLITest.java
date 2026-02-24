@@ -80,7 +80,7 @@ class CLITest {
   @Test
   void should_log_if_broadcast_retrieval_fails() {
     // Given
-    given(runCommandUseCase.run(any())).willThrow(SomaFmException.class);
+    given(runCommandUseCase.runCommand(any())).willThrow(SomaFmException.class);
     var expected = "Error while fetching broadcasts.";
 
     try (LogCaptor logCaptor = LogCaptor.forClass(CLI.class)) {
@@ -97,7 +97,7 @@ class CLITest {
   void should_run_command(String action) throws Exception {
     // Given
     var args = new String[]{action, "Drone Zone"};
-    given(runCommandUseCase.run(any())).willReturn(Fixtures.getRecentBroadcasts());
+    given(runCommandUseCase.runCommand(any())).willReturn(Fixtures.getRecentBroadcasts());
     var expected = Fixtures.getDisplayedRecentBroadcasts().replaceAll("[\\r\\n]", "");
 
     // When

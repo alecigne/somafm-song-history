@@ -33,7 +33,7 @@ class SomaFmSongHistoryServiceTest {
     var command = new SomaFmCommand(Mode.DISPLAY, DRONE_ZONE);
 
     // When
-    List<Broadcast> recentBroadcasts = recentBroadcastBusiness.run(command);
+    List<Broadcast> recentBroadcasts = recentBroadcastBusiness.runCommand(command);
 
     // Then
     assertThat(recentBroadcasts).containsExactly(newest, middle, oldest);
@@ -67,7 +67,7 @@ class SomaFmSongHistoryServiceTest {
     var command = new SomaFmCommand(Mode.SAVE, DRONE_ZONE);
 
     // When
-    List<Broadcast> recentBroadcasts = recentBroadcastBusiness.run(command);
+    List<Broadcast> recentBroadcasts = recentBroadcastBusiness.runCommand(command);
 
     // Then
     assertThat(recentBroadcasts).containsExactly(first, second);

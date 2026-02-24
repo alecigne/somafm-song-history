@@ -32,7 +32,7 @@ public class CLI {
       Mode mode = Mode.getValue(args[0]);
       Channel channel = PredefinedChannel.getByPublicName(args[1])
                                          .orElseThrow(() -> new UnknownChannelException(args[1]));
-      runCommandUseCase.run(new SomaFmCommand(mode, channel))
+      runCommandUseCase.runCommand(new SomaFmCommand(mode, channel))
                        .stream()
                        .map(displayedBroadcastMapper::map)
                        .forEach(System.out::println);

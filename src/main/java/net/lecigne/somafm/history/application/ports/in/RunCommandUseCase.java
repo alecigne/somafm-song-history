@@ -5,5 +5,5 @@ import net.lecigne.somafm.history.domain.model.SomaFmCommand;
 import net.lecigne.somafm.recentlib.Broadcast;
 
 public interface RunCommandUseCase {
-  List<Broadcast> run(SomaFmCommand command);
+  List<Broadcast> runCommand(SomaFmCommand command);
 }
