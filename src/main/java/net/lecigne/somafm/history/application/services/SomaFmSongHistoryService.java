@@ -39,7 +39,6 @@ public class SomaFmSongHistoryService implements
     this(somaFmRepo, broadcastRepo, PageRequestValidator.defaultValidator());
   }
 
-  // TODO Get rid of this
   @Override
   public List<Broadcast> runCommand(SomaFmCommand command) {
     return switch (command.mode()) {
