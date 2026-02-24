@@ -47,7 +47,7 @@ class SqlBroadcastRepositoryIT {
         .load()
         .migrate();
 
-    repository = new SqlBroadcastRepository( hikariDataSource);
+    repository = new SqlBroadcastRepository(hikariDataSource);
     testRepository = new TestRepository(hikariDataSource);
   }
 

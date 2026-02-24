@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.stream.Stream;
-import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.DbConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;

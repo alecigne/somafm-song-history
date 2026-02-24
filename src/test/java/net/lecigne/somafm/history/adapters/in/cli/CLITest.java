@@ -121,20 +121,20 @@ class CLITest {
     private static List<Broadcast> getRecentBroadcasts() {
       return List.of(
           Broadcast.builder()
-                   .time(Instant.parse("2021-01-01T13:00:00.00Z"))
-                   .channel(DRONE_ZONE)
-                   .song(dirkSerriesSongFixture())
-                   .build(),
+              .time(Instant.parse("2021-01-01T13:00:00.00Z"))
+              .channel(DRONE_ZONE)
+              .song(dirkSerriesSongFixture())
+              .build(),
           Broadcast.builder()
-                   .time(Instant.parse("2021-01-01T13:15:00.00Z"))
-                   .channel(DRONE_ZONE)
-                   .song(igneousFlameSongFixture())
-                   .build(),
+              .time(Instant.parse("2021-01-01T13:15:00.00Z"))
+              .channel(DRONE_ZONE)
+              .song(igneousFlameSongFixture())
+              .build(),
           Broadcast.builder()
-                   .time(Instant.parse("2021-01-01T13:20:00.00Z"))
-                   .channel(DRONE_ZONE)
-                   .song(breakSongFixture())
-                   .build());
+              .time(Instant.parse("2021-01-01T13:20:00.00Z"))
+              .channel(DRONE_ZONE)
+              .song(breakSongFixture())
+              .build());
     }
 
     private static String getDisplayedRecentBroadcasts() {

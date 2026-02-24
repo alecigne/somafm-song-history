@@ -30,12 +30,13 @@ public class CLI {
         return;
       }
       Mode mode = Mode.getValue(args[0]);
-      Channel channel = PredefinedChannel.getByPublicName(args[1])
-                                         .orElseThrow(() -> new UnknownChannelException(args[1]));
+      Channel channel = PredefinedChannel
+          .getByPublicName(args[1])
+          .orElseThrow(() -> new UnknownChannelException(args[1]));
       runCommandUseCase.runCommand(new SomaFmCommand(mode, channel))
-                       .stream()
-                       .map(displayedBroadcastMapper::map)
-                       .forEach(System.out::println);
+          .stream()
+          .map(displayedBroadcastMapper::map)
+          .forEach(System.out::println);
     } catch (UnknownChannelException e) {
       log.error("Unknown channel: {}", args[1]);
     } catch (SomaFmException e) {

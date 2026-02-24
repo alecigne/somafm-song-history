@@ -60,9 +60,9 @@ class SomaFmSongHistoryIT {
     var hikariDataSource = new HikariDataSource(hikariConfig);
 
     Flyway.configure()
-          .dataSource(POSTGRES_CONTAINER.getJdbcUrl(), POSTGRES_CONTAINER.getUsername(), POSTGRES_CONTAINER.getPassword())
-          .load()
-          .migrate();
+        .dataSource(POSTGRES_CONTAINER.getJdbcUrl(), POSTGRES_CONTAINER.getUsername(), POSTGRES_CONTAINER.getPassword())
+        .load()
+        .migrate();
 
     // Application
     var somaFmConfig = new SomaFmConfig();
@@ -87,26 +87,26 @@ class SomaFmSongHistoryIT {
         .given(somaFm.fetchRecent(PredefinedChannel.DRONE_ZONE))
         .willReturn(List.of(
             Broadcast.builder()
-                     .time(Instant.parse("2021-01-01T13:00:00.00Z"))
-                     .channel(DRONE_ZONE)
-                     .song(dirkSerriesSongFixture())
-                     .build(),
+                .time(Instant.parse("2021-01-01T13:00:00.00Z"))
+                .channel(DRONE_ZONE)
+                .song(dirkSerriesSongFixture())
+                .build(),
             // Same song played twice
             Broadcast.builder()
-                     .time(Instant.parse("2021-01-01T13:02:00.00Z"))
-                     .channel(DRONE_ZONE)
-                     .song(dirkSerriesSongFixture())
-                     .build(),
+                .time(Instant.parse("2021-01-01T13:02:00.00Z"))
+                .channel(DRONE_ZONE)
+                .song(dirkSerriesSongFixture())
+                .build(),
             Broadcast.builder()
-                     .time(Instant.parse("2021-01-01T13:15:00.00Z"))
-                     .channel(DRONE_ZONE)
-                     .song(igneousFlameSongFixture())
-                     .build(),
+                .time(Instant.parse("2021-01-01T13:15:00.00Z"))
+                .channel(DRONE_ZONE)
+                .song(igneousFlameSongFixture())
+                .build(),
             Broadcast.builder()
-                     .time(Instant.parse("2021-01-01T13:20:00.00Z"))
-                     .channel(DRONE_ZONE)
-                     .song(breakSongFixture())
-                     .build()));
+                .time(Instant.parse("2021-01-01T13:20:00.00Z"))
+                .channel(DRONE_ZONE)
+                .song(breakSongFixture())
+                .build()));
 
     // When
     cli.run(args);

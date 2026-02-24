@@ -14,7 +14,6 @@ import net.lecigne.somafm.history.adapters.in.cli.CLI;
 import net.lecigne.somafm.history.adapters.in.rest.JavalinRestController;
 import net.lecigne.somafm.history.adapters.out.HtmlSomaFmRepository;
 import net.lecigne.somafm.history.adapters.out.SqlBroadcastRepository;
-import net.lecigne.somafm.history.application.ports.in.GetBroadcastsUseCase;
 import net.lecigne.somafm.history.application.ports.in.RunCommandUseCase;
 import net.lecigne.somafm.history.application.ports.out.BroadcastRepository;
 import net.lecigne.somafm.history.application.ports.out.SomaFmRepository;
