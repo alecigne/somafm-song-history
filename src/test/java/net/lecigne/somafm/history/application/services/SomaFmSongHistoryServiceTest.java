@@ -194,7 +194,7 @@ class SomaFmSongHistoryServiceTest {
     // Then
     assertThatThrownBy(() -> recentBroadcastBusiness.getBroadcasts(1, 201))
         .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("size must be <= 200");
+        .hasMessage("size must be <= 50");
   }
 
   private static Broadcast broadcastAt(String time, Song song) {

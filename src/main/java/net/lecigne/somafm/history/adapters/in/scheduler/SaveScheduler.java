@@ -1,7 +1,6 @@
 package net.lecigne.somafm.history.adapters.in.scheduler;
 
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -9,7 +8,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 import net.lecigne.somafm.history.application.ports.in.SaveRecentBroadcastsUseCase;
+import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.SchedulerConfig;
 import net.lecigne.somafm.recentlib.Channel;
+import net.lecigne.somafm.recentlib.PredefinedChannel;
 
 @Slf4j
 public class SaveScheduler {
@@ -55,8 +56,21 @@ public class SaveScheduler {
     }
   }
 
-  public static SaveScheduler init(SaveRecentBroadcastsUseCase saveRecentBroadcastsUseCase, Duration period) {
-    return new SaveScheduler(saveRecentBroadcastsUseCase, period);
+  public static void init(SaveRecentBroadcastsUseCase saveRecentBroadcastsUseCase, SchedulerConfig schedulerConfig) {
+    List<Channel> channels = schedulerConfig
+        .getChannels()
+        .stream()
+        .map(SaveScheduler::mapToChannel)
+        .toList();
+    var saveScheduler = new SaveScheduler(saveRecentBroadcastsUseCase, schedulerConfig.getPeriod());
+    Runtime.getRuntime().addShutdownHook(new Thread(saveScheduler::shutdown, "save-scheduler-shutdown"));
+    saveScheduler.schedule(channels);
+  }
+
+  private static Channel mapToChannel(String configuredName) {
+    return PredefinedChannel
+        .getByInternalName(configuredName)
+        .orElseThrow(() -> new IllegalArgumentException("Unknown scheduler channel: " + configuredName));
   }
 
 }

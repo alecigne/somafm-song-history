@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum Mode {
-  DISPLAY("display"), SAVE("save");
+  API("api"), DISPLAY("display"), SAVE("save");
 
   private final String actionName;
 
@@ -16,6 +16,10 @@ public enum Mode {
         .filter(value -> value.actionName.equals(modeName))
         .findFirst()
         .orElse(DISPLAY);
+  }
+
+  public boolean needsDatabase() {
+    return this == SAVE || this == API;
   }
 
 }

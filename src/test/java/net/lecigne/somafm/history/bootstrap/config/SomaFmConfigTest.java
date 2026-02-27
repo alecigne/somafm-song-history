@@ -3,6 +3,7 @@ package net.lecigne.somafm.history.bootstrap.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.Stream;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.DbConfig;
@@ -22,7 +23,7 @@ class SomaFmConfigTest {
       SomaFmConfig config, boolean expected
   ) {
     // When
-    boolean isDbActivated = config.isDbActivated();
+    boolean isDbActivated = config.isDbConfigured();
 
     // Then
     assertThat(isDbActivated).isEqualTo(expected);
@@ -35,7 +36,7 @@ class SomaFmConfigTest {
       SomaFmConfig config, boolean expected
   ) {
     // When
-    boolean isSchedulerActivated = config.isSchedulerActivated();
+    boolean isSchedulerActivated = config.isSchedulerConfigured();
 
     // Then
     assertThat(isSchedulerActivated).isEqualTo(expected);
@@ -63,13 +64,13 @@ class SomaFmConfigTest {
     // Nothing
     var noScheduler = new SomaFmConfig();
     // Scheduler, disabled
-    var schedulerDisabled = buildSchedulerConfig(false, 10, List.of("Drone Zone"));
+    var schedulerDisabled = buildSchedulerConfig(false, Duration.ofMinutes(10), List.of("Drone Zone"));
     // Scheduler, invalid period
-    var schedulerInvalidPeriod = buildSchedulerConfig(true, 0, List.of("Drone Zone"));
+    var schedulerInvalidPeriod = buildSchedulerConfig(true, Duration.ofMinutes(0), List.of("Drone Zone"));
     // Scheduler, no channels
-    var schedulerNoChannels = buildSchedulerConfig(true, 10, List.of());
+    var schedulerNoChannels = buildSchedulerConfig(true, Duration.ofMinutes(10), List.of());
     // Scheduler, valid
-    var schedulerValid = buildSchedulerConfig(true, 10, List.of("Drone Zone"));
+    var schedulerValid = buildSchedulerConfig(true, Duration.ofMinutes(10), List.of("Drone Zone"));
     return Stream.of(
         arguments(noScheduler, false),
         arguments(schedulerDisabled, false),
@@ -90,13 +91,13 @@ class SomaFmConfigTest {
     return config;
   }
 
-  private static SomaFmConfig buildSchedulerConfig(boolean enabled, long periodMinutes, List<String> channels) {
+  private static SomaFmConfig buildSchedulerConfig(boolean enabled, Duration period, List<String> channels) {
     var schedulerConfig = new SchedulerConfig();
     schedulerConfig.setEnabled(enabled);
-    schedulerConfig.setPeriodMinutes(periodMinutes);
+    schedulerConfig.setPeriod(period);
     schedulerConfig.setChannels(channels);
     var config = new SomaFmConfig();
-    config.setScheduler(schedulerConfig);
+    config.setSchedulerConfig(schedulerConfig);
     return config;
   }
 

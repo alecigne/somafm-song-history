@@ -19,9 +19,11 @@ public class SomaFmConfig {
   private String userAgent;
   private String timezone;
   @Optional
-  private DbConfig db;
+  private DbConfig dbConfig;
   @Optional
-  private SchedulerConfig scheduler;
+  private ServerConfig server;
+  @Optional
+  private SchedulerConfig schedulerConfig;
 
   @NoArgsConstructor
   @Getter
@@ -35,22 +37,51 @@ public class SomaFmConfig {
   @NoArgsConstructor
   @Getter
   @Setter
+  public static class ServerConfig {
+    private int port;
+  }
+
+  @NoArgsConstructor
+  @Getter
+  @Setter
   public static class SchedulerConfig {
     private boolean enabled;
     private Duration period;
     private List<String> channels;
   }
 
-  public boolean isDbActivated() {
-    return Objects.nonNull(db) && Stream.of(db.getUrl(), db.getUser(), db.getPassword()).allMatch(Objects::nonNull);
+  public boolean isDbConfigured() {
+    return Objects.nonNull(dbConfig) && Stream.of(dbConfig.getUrl(), dbConfig.getUser(), dbConfig.getPassword()).allMatch(Objects::nonNull);
   }
 
-  public boolean isSchedulerActivated() {
-    return Objects.nonNull(scheduler)
-        && scheduler.isEnabled()
-        && scheduler.getPeriod().getSeconds() > 0
-        && Objects.nonNull(scheduler.getChannels())
-        && !scheduler.getChannels().isEmpty();
+  public boolean isServerConfigured() {
+    return Objects.nonNull(server) && server.getPort() > 0;
+  }
+
+  public boolean isSchedulerConfigured() {
+    return Objects.nonNull(schedulerConfig)
+        && schedulerConfig.isEnabled()
+        && schedulerConfig.getPeriod().getSeconds() > 0
+        && Objects.nonNull(schedulerConfig.getChannels())
+        && !schedulerConfig.getChannels().isEmpty();
+  }
+
+  /* Getters and setters for config names */
+
+  public DbConfig getDb() {
+    return dbConfig;
+  }
+
+  public void setDb(DbConfig db) {
+    this.dbConfig = db;
+  }
+
+  public SchedulerConfig getScheduler() {
+    return schedulerConfig;
+  }
+
+  public void setScheduler(SchedulerConfig scheduler) {
+    this.schedulerConfig = scheduler;
   }
 
 }

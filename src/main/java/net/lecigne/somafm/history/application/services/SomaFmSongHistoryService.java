@@ -44,6 +44,7 @@ public class SomaFmSongHistoryService implements
     return switch (command.mode()) {
       case DISPLAY -> fetchRecent(command.channel());
       case SAVE -> saveRecent(command.channel());
+      case API -> throw new IllegalArgumentException();
     };
   }
 
