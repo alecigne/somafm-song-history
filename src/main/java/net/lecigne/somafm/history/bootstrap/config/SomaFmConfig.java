@@ -14,8 +14,6 @@ import lombok.Setter;
 @Setter
 public class SomaFmConfig {
 
-  public static final String ROOT_CONFIG = "config";
-
   private String userAgent;
   private String timezone;
   @Optional

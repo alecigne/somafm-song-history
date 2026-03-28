@@ -1,8 +1,5 @@
 package net.lecigne.somafm.history.bootstrap.config;
 
-import static net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.ROOT_CONFIG;
-
-import com.typesafe.config.Config;
 import com.typesafe.config.ConfigBeanFactory;
 import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +12,7 @@ public final class ConfigLoader {
   }
 
   public static SomaFmConfig loadForMode(Mode mode) {
-    SomaFmConfig somaFmConfig = fromTypeSafeConfig(ConfigFactory.load());
+    SomaFmConfig somaFmConfig = ConfigBeanFactory.create(ConfigFactory.load(), SomaFmConfig.class);
     validateDbConfig(mode, somaFmConfig);
     validateServerConfig(mode, somaFmConfig);
     return somaFmConfig;
@@ -31,15 +28,6 @@ public final class ConfigLoader {
     if (Mode.API.equals(mode) && !somaFmConfig.isServerConfigured()) {
       throw new IllegalStateException("API mode requires server config! Exiting.");
     }
-  }
-
-  public static SomaFmConfig loadForMode(String resourceBasename) {
-    return fromTypeSafeConfig(ConfigFactory.load(resourceBasename));
-  }
-
-  static SomaFmConfig fromTypeSafeConfig(Config typeSafeConfig) {
-    Config normalized = typeSafeConfig.getConfig(ROOT_CONFIG);
-    return ConfigBeanFactory.create(normalized, SomaFmConfig.class);
   }
 
 }

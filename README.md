@@ -50,15 +50,13 @@ If you need your own config, typically to run the application as a service on yo
 prepare a file in [HOCON][hocon] format:
 
 ``` hocon
-config {
-  userAgent = "my-own-user-agent"
-  timezone = "my-own-timezone"
-  // This part is optional in display mode
-  db {
-    url = "jdbc:postgresql://[my-host]:[my-port]/my_own_db"
-    user = "user"
-    password = "password"
-  }
+userAgent = "my-own-user-agent"
+timezone = "my-own-timezone"
+// This part is optional in display mode
+db {
+  url = "jdbc:postgresql://[my-host]:[my-port]/my_own_db"
+  user = "user"
+  password = "password"
 }
 ```
 
