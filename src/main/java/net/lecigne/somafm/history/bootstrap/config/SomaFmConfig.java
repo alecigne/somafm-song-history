@@ -66,6 +66,7 @@ public class SomaFmConfig {
 
   /* Getters and setters for config names */
 
+  @Optional
   public DbConfig getDb() {
     return dbConfig;
   }
@@ -74,6 +75,7 @@ public class SomaFmConfig {
     this.dbConfig = db;
   }
 
+  @Optional
   public SchedulerConfig getScheduler() {
     return schedulerConfig;
   }
