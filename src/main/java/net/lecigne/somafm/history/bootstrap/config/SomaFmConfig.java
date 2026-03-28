@@ -19,7 +19,7 @@ public class SomaFmConfig {
   @Optional
   private DbConfig dbConfig;
   @Optional
-  private ServerConfig server;
+  private ServerConfig serverConfig;
   @Optional
   private SchedulerConfig schedulerConfig;
 
@@ -53,7 +53,7 @@ public class SomaFmConfig {
   }
 
   public boolean isServerConfigured() {
-    return Objects.nonNull(server) && server.getPort() > 0;
+    return Objects.nonNull(serverConfig) && serverConfig.getPort() > 0;
   }
 
   public boolean isSchedulerConfigured() {
@@ -64,7 +64,7 @@ public class SomaFmConfig {
         && !schedulerConfig.getChannels().isEmpty();
   }
 
-  /* Getters and setters for config names */
+  /* Getters and setters for compatibility with user-friendly names in HOCON */
 
   @Optional
   public DbConfig getDb() {
@@ -82,6 +82,15 @@ public class SomaFmConfig {
 
   public void setScheduler(SchedulerConfig scheduler) {
     this.schedulerConfig = scheduler;
+  }
+
+  @Optional
+  public ServerConfig getServer() {
+    return serverConfig;
+  }
+
+  public void setServer(ServerConfig server) {
+    this.serverConfig = server;
   }
 
 }

@@ -16,6 +16,7 @@ import net.lecigne.somafm.history.application.services.SomaFmSongHistoryService;
 import net.lecigne.somafm.history.bootstrap.config.ConfigLoader;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.DbConfig;
+import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.ServerConfig;
 import net.lecigne.somafm.history.domain.model.Mode;
 import net.lecigne.somafm.recentlib.SomaFm;
 import org.flywaydb.core.Flyway;
@@ -42,12 +43,12 @@ public class Main {
       case SAVE, DISPLAY -> CLI.init(service, somaFmConfig).run(args);
       case API -> {
         SaveScheduler.init(service, somaFmConfig.getSchedulerConfig());
-        initApiServer(service);
+        initApiServer(service, somaFmConfig.getServerConfig());
       }
     }
   }
 
-  private static void initApiServer(SomaFmSongHistoryService service) {
+  private static void initApiServer(SomaFmSongHistoryService service, ServerConfig serverConfig) {
     Javalin apiServer = Javalin.create(config -> config.jsonMapper(
         new JavalinJackson().updateMapper(mapper -> {
           mapper.registerModule(new JavaTimeModule());
@@ -55,8 +56,8 @@ public class Main {
         })));
     JavalinRestController javalinRestController = JavalinRestController.init(service, service);
     javalinRestController.registerRoutes(apiServer);
-    apiServer.start(7070);
-    log.info("API server started on port 7070");
+    apiServer.start(serverConfig.getPort());
+    log.info("API server started on port {}", serverConfig.getPort());
   }
 
   private static void initDb(SomaFmConfig somaFmConfig) {

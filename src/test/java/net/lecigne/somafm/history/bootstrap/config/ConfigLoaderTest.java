@@ -357,7 +357,7 @@ class ConfigLoaderTest {
     config.setUserAgent(userAgent);
     config.setTimezone(timezone);
     config.setDb(dbConfig);
-    config.setServer(serverConfig);
+    config.setServerConfig(serverConfig);
     config.setSchedulerConfig(schedulerConfig);
     return config;
   }
