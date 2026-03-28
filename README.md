@@ -3,7 +3,7 @@
 `somafm-song-history` is a Java application that retrieves and prints [SomaFM][soma]'s recently
 played songs in the console, or save it to a database.
 
-Current version is v0.5.0.
+Current version is v0.6.0.
 
 Please support SomaFM's awesome work [here][soma-support].
 
@@ -19,9 +19,24 @@ This project uses [somafm-recentlib][lib] through [JitPack][jitpack].
 
 # Usage
 
-A REST API is planned for v0.6.0. For now, `somafm-song-history` is a CLI application that receives
-2 arguments: an *action* (`display` or `save`) and a *channel* (e.g. `Groove Salad`). The channel
-name is its public name, available on [this page][soma-channels].
+## Modes
+
+`somafm-song-history` can be used in 3 different modes.
+
+### API mode
+
+This mode runs a Javalin server that exposes a REST API. The application runs continuously and
+update its database regularly for a given set of channels.
+
+This is the main mode; the other two modes below are historical. I kept them... because I can! :)
+
+### Display mode
+
+Prints recently played songs in the console for a given channel.
+
+### Save mode
+
+Saves recently played songs to a database for a given channel.
 
 ## Using Docker
 
@@ -30,7 +45,7 @@ The Docker image is hosted on [DockerHub][dockerhub].
 If you want to run everything with [the default config][config], simply run this for `display` mode:
 
 ``` shell
-docker run --rm -it alecigne/somafm-song-history:v0.5.0 "display" "Drone Zone"
+docker run --rm -it alecigne/somafm-song-history:v0.6.0 "display" "Drone Zone"
 ```
 
 For `save` mode, you will need a PostgreSQL database. You can spawn it using the provided Docker
@@ -43,8 +58,12 @@ docker compose up -d db
 It will create a database matching the default config above. Then:
 
 ``` shell
-docker run --rm -it alecigne/somafm-song-history:v0.5.0 "save" "Drone Zone"
+docker run --rm -it alecigne/somafm-song-history:v0.6.0 "save" "Drone Zone"
 ```
+
+For `api` mode:
+
+TODO
 
 If you need your own config, typically to run the application as a service on your local network,
 prepare a file in [HOCON][hocon] format:
