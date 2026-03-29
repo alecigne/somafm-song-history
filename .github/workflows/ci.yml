@@ -18,6 +18,8 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    outputs:
+      jar-artifact-id: ${{ steps.upload-jar.outputs.artifact-id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,6 +34,32 @@ jobs:
       - name: Verify with Maven
         run: ./mvnw -B --update-snapshots verify
 
+      - name: Upload packaged JAR
+        id: upload-jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: application-jar
+          path: target/somafm-song-history-with-dependencies.jar
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+  build-image:
+    runs-on: ubuntu-latest
+    needs: verify
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download packaged JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: application-jar
+          path: target
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -45,3 +73,14 @@ jobs:
           file: ./Containerfile
           push: false
           tags: docker.io/alecigne/somafm-song-history:ci
+
+      - name: Delete packaged JAR artifact
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.deleteArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: Number("${{ needs.verify.outputs.jar-artifact-id }}")
+            })
