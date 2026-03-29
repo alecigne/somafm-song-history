@@ -151,7 +151,7 @@ class SomaFmSongHistoryRestIT {
     RequestSpecification req = given().port(port);
 
     // When
-    Response response = req.queryParam("channel", "dronezone").get("/broadcasts/latest");
+    Response response = req.queryParam("channel", "dronezone").get("/broadcasts/recent");
 
     // Then
     String body = response.then()

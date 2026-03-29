@@ -44,8 +44,10 @@ public class JavalinRestController {
 
   private void fetchRecentBroadcasts(Context ctx) {
     String channelAsString = ctx.queryParam("channel");
-    Channel channel = PredefinedChannel.getByInternalName(channelAsString).orElseThrow();
     try {
+      Channel channel = PredefinedChannel
+          .getByInternalName(channelAsString)
+          .orElseThrow(IllegalArgumentException::new);
       List<Broadcast> broadcasts = fetchRecentBroadcastsUseCase.fetchRecent(channel);
       ctx.json(broadcasts.stream().map(BroadcastResponseDto::from).toList());
     } catch (IllegalArgumentException e) {
