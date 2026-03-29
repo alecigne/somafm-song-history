@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.6.0](https://github.com/alecigne/somafm-song-history/tree/v0.6.0) - 2026-XX-XX
+
+Create an long-running `api` mode that retrives history regularly.
+
 ## [v0.5.0](https://github.com/alecigne/somafm-song-history/tree/v0.5.0) - 2026-02-21
 
 - Refactor the code.

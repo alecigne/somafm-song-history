@@ -72,7 +72,7 @@ public class JavalinRestController {
   public EndpointGroup routes() {
     return () -> path("broadcasts", () -> {
       get(this::getBroadcasts);
-      get("latest", this::fetchRecentBroadcasts);
+      get("recent", this::fetchRecentBroadcasts);
     });
   }
 

@@ -124,14 +124,14 @@ class SomaFmSongHistoryRestIT {
   }
 
   @Test
-  void should_get_latest_broadcasts_for_channel() {
+  void should_get_recent_broadcasts_for_channel() {
     // Given
     Broadcast broadcast = broadcastAt("2021-01-01T11:10:00Z", dirkSerriesSongFixture());
     fetchRecentBroadcastsUseCase.broadcasts = List.of(broadcast);
     RequestSpecification req = given().port(port);
 
     // When
-    Response response = req.queryParam("channel", "dronezone").get("/broadcasts/latest");
+    Response response = req.queryParam("channel", "dronezone").get("/broadcasts/recent");
 
     // Then
     response.then()

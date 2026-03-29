@@ -1,7 +1,6 @@
 # `somafm-song-history`
 
-`somafm-song-history` is a Java application that retrieves and prints [SomaFM][soma]'s recently
-played songs in the console, or save it to a database.
+`somafm-song-history` is a Java application that retrieves [SomaFM][soma]'s recently played songs.
 
 Current version is v0.6.0.
 
@@ -11,9 +10,6 @@ Please support SomaFM's awesome work [here][soma-support].
 
 This project is developed for my personal use, but I'll be glad to help if you encounter any
 [issue][issues].
-
-My goal is to build and browse a personal database of songs played by SomaFM, and as an ambient fan,
-especially Drone Zone.
 
 This project uses [somafm-recentlib][lib] through [JitPack][jitpack].
 
@@ -26,7 +22,7 @@ This project uses [somafm-recentlib][lib] through [JitPack][jitpack].
 ### API mode
 
 This mode runs a Javalin server that exposes a REST API. The application runs continuously and
-update its database regularly for a given set of channels.
+update its database regularly for a given set of channels, according to the config.
 
 This is the main mode; the other two modes below are historical. I kept them... because I can! :)
 
@@ -34,61 +30,86 @@ This is the main mode; the other two modes below are historical. I kept them... 
 
 Prints recently played songs in the console for a given channel.
 
-### Save mode
+### Save mode (or "batch" mode)
 
 Saves recently played songs to a database for a given channel.
 
-## Using Docker
+## Using Podman (or Docker)
 
-The Docker image is hosted on [DockerHub][dockerhub].
+This program is meant to be self-hosted in `api` mode. I personally use Podman and Quadlet for this.
+Below are "manual" Podman commands you can run to get started. They should work with Docker as well.
 
-If you want to run everything with [the default config][config], simply run this for `display` mode:
+The container image is hosted on [DockerHub][dockerhub].
 
-``` shell
-docker run --rm -it alecigne/somafm-song-history:v0.6.0 "display" "Drone Zone"
-```
-
-For `save` mode, you will need a PostgreSQL database. You can spawn it using the provided Docker
-Compose file:
+To run the application in `display mode` with [the default config][config]:
 
 ``` shell
-docker compose up -d db
+podman run --rm -it docker.io/alecigne/somafm-song-history:v0.6.0 "display" "Drone Zone"
 ```
 
-It will create a database matching the default config above. Then:
+To run the application in `save` mode, you will need a PostgreSQL database. You can start one on
+port 5432 with the provided Compose file:
 
 ``` shell
-docker run --rm -it alecigne/somafm-song-history:v0.6.0 "save" "Drone Zone"
+podman-compose up -d db
 ```
 
-For `api` mode:
-
-TODO
-
-If you need your own config, typically to run the application as a service on your local network,
-prepare a file in [HOCON][hocon] format:
-
-``` hocon
-userAgent = "my-own-user-agent"
-timezone = "my-own-timezone"
-// This part is optional in display mode
-db {
-  url = "jdbc:postgresql://[my-host]:[my-port]/my_own_db"
-  user = "user"
-  password = "password"
-}
-```
-
-Then pass the config to Docker with your chosen mode:
+It creates a `somafm-song-history-db` PostgreSQL container that matches the parameters provided in
+the default config. Then run the published image:
 
 ``` shell
-docker run --rm -it --net=host -v /path/to/application.conf:/application.conf alecigne/somafm-song-history:v0.5.0 "display" "Drone Zone"
+podman run --rm -it --network=host docker.io/alecigne/somafm-song-history:v0.6.0 "save" "Drone Zone"
+```
+
+In these manual tests, note that `--network=host` is required to access the database.
+
+You can use the same database in `api` mode:
+
+``` shell
+podman run -d --name somafm-song-history-api --network=host docker.io/alecigne/somafm-song-history:v0.6.0 "api"
+```
+
+Then visit:
+
+- `http://localhost:7070/broadcasts` to get a paginated list of broadcasts from the DB.
+- `http://localhost:7070/broadcasts/recent?channel=dronezone` for recent broadcasts from Drone Zone.
+
+## Using a custom config
+
+If you need your own config, you can prepare a file in [HOCON][hocon] format. Check the
+[default config][config] for reference.
+
+Then pass the config to Podman with your chosen mode:
+
+``` shell
+podman run -d --network=host -v /path/to/application.conf:/application.conf docker.io/alecigne/somafm-song-history:v0.6.0 "api"
+```
+
+## Cleanup
+
+To stop and remove the API container:
+
+``` shell
+podman stop somafm-song-history-api
+podman rm somafm-song-history-api
+```
+
+To stop and remove the PostgreSQL container from Compose:
+
+``` shell
+podman-compose down
+```
+
+To also remove the PostgreSQL data volume:
+
+``` shell
+podman-compose down -v
 ```
 
 ## Using a JAR file (Java 21)
 
-Grab a Jar from the [releases][releases] section or build it from source. Use the commands above
-(Docker section) if you need a Postgres instance and/or a custom config file. Then:
+Grab a Jar from the [releases][releases] section or build it from source if you know what you're
+doing. Use the commands above if you need a Postgres instance. Then:
 
 ``` shell
 java -jar somafm-song-history.jar "display" "Drone Zone"
