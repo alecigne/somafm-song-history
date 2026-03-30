@@ -16,15 +16,19 @@ import net.lecigne.somafm.recentlib.PredefinedChannel;
 public class SaveScheduler {
 
   private final SaveRecentBroadcastsUseCase saveRecentBroadcastsUseCase;
-  private final Duration period;
-  private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+  private final ScheduledExecutorService executorService;
 
-  SaveScheduler(SaveRecentBroadcastsUseCase saveRecentBroadcastsUseCase, Duration period) {
+  SaveScheduler(SaveRecentBroadcastsUseCase saveRecentBroadcastsUseCase, ScheduledExecutorService executorService) {
     this.saveRecentBroadcastsUseCase = saveRecentBroadcastsUseCase;
-    this.period = period;
+    this.executorService = executorService;
   }
 
-  public void schedule(List<Channel> channels) {
+  SaveScheduler(SaveRecentBroadcastsUseCase saveRecentBroadcastsUseCase) {
+    this(saveRecentBroadcastsUseCase, Executors.newSingleThreadScheduledExecutor());
+  }
+
+  // TODO Remove duplicates
+  public void schedule(List<Channel> channels, Duration period) {
     IntStream.range(0, channels.size()).forEach(i -> {
       long periodInSeconds = period.getSeconds();
       long delayInSeconds = periodInSeconds / channels.size();
@@ -62,9 +66,9 @@ public class SaveScheduler {
         .stream()
         .map(SaveScheduler::mapToChannel)
         .toList();
-    var saveScheduler = new SaveScheduler(saveRecentBroadcastsUseCase, schedulerConfig.getPeriod());
+    var saveScheduler = new SaveScheduler(saveRecentBroadcastsUseCase);
     Runtime.getRuntime().addShutdownHook(new Thread(saveScheduler::shutdown, "save-scheduler-shutdown"));
-    saveScheduler.schedule(channels);
+    saveScheduler.schedule(channels, schedulerConfig.getPeriod());
   }
 
   private static Channel mapToChannel(String configuredName) {
