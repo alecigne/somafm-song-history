@@ -1,11 +1,11 @@
-package net.lecigne.somafm.history.domain;
+package net.lecigne.somafm.history.adapters.in.cli;
 
 import lombok.Builder;
 import lombok.Getter;
 
 @Builder
 @Getter
-public class DisplayableBroadcast {
+class DisplayableBroadcast {
   private String time;
   private String channel;
   private String artist;

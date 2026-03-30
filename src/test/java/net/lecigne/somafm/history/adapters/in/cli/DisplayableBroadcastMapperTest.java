@@ -4,8 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
 import java.time.ZoneId;
-import net.lecigne.somafm.history.adapters.in.cli.DisplayedBroadcastMapper;
-import net.lecigne.somafm.history.domain.DisplayableBroadcast;
 import net.lecigne.somafm.recentlib.Artist;
 import net.lecigne.somafm.recentlib.Broadcast;
 import net.lecigne.somafm.recentlib.PredefinedChannel;

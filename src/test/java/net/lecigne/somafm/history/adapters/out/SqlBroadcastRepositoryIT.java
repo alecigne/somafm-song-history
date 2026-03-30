@@ -19,9 +19,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 @DisplayName("The default broadcast repository")
 @Tag("integration")
@@ -32,7 +32,7 @@ class SqlBroadcastRepositoryIT {
   private static TestRepository testRepository;
 
   @Container
-  private static final PostgreSQLContainer<?> POSTGRES_CONTAINER = new PostgreSQLContainer<>("postgres:16-alpine");
+  private static final PostgreSQLContainer POSTGRES_CONTAINER = new PostgreSQLContainer("postgres:16-alpine");
 
   @BeforeAll
   static void beforeAll() {
@@ -47,7 +47,7 @@ class SqlBroadcastRepositoryIT {
         .load()
         .migrate();
 
-    repository = new SqlBroadcastRepository( hikariDataSource);
+    repository = new SqlBroadcastRepository(hikariDataSource);
     testRepository = new TestRepository(hikariDataSource);
   }
 
@@ -135,6 +135,37 @@ class SqlBroadcastRepositoryIT {
         .hasSize(1)
         .usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(dirkSerriesSongFixture());
+  }
+
+  @Test
+  void should_get_broadcasts_with_pagination() {
+    // Given
+    var oldest = Broadcast.builder()
+        .time(Instant.parse("2021-01-01T11:36:43.123Z"))
+        .channel(DRONE_ZONE)
+        .song(dirkSerriesSongFixture())
+        .build();
+    var middle = Broadcast.builder()
+        .time(Instant.parse("2021-01-01T11:45:37.967Z"))
+        .channel(DRONE_ZONE)
+        .song(igneousFlameSongFixture())
+        .build();
+    var newest = Broadcast.builder()
+        .time(Instant.parse("2021-01-01T11:50:00.000Z"))
+        .channel(DRONE_ZONE)
+        .song(igneousFlameSongFixture())
+        .build();
+    repository.updateBroadcasts(List.of(oldest, middle, newest));
+
+    // When
+    List<Broadcast> firstPage = repository.getBroadcasts(1, 2);
+    List<Broadcast> secondPage = repository.getBroadcasts(2, 2);
+    long total = repository.countBroadcasts();
+
+    // Then
+    assertThat(firstPage).usingRecursiveFieldByFieldElementComparator().containsExactly(newest, middle);
+    assertThat(secondPage).usingRecursiveFieldByFieldElementComparator().containsExactly(oldest);
+    assertThat(total).isEqualTo(3);
   }
 
 }

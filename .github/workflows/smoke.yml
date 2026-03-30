@@ -1,0 +1,16 @@
+name: Smoke
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+    paths-ignore:
+      - "**.md"
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/_pipeline.yml
+    with:
+      run-smoke: true
+      publish-image: false

@@ -32,7 +32,7 @@ class HtmlSomaFmRepositoryTest {
     given(somaFm.fetchRecent(DRONE_ZONE)).willReturn(List.of(broadcast));
 
     // When
-    List<Broadcast> recentBroadcasts = repository.getRecentBroadcasts(channel);
+    List<Broadcast> recentBroadcasts = repository.fetchRecentBroadcasts(channel);
 
     // Then
     assertThat(recentBroadcasts)
