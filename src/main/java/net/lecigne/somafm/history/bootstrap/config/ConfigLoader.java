@@ -32,7 +32,7 @@ public final class ConfigLoader {
       case SAVE -> validateDbConfig(somaFmConfig.getDb());
       case API -> {
         validateDbConfig(somaFmConfig.getDb());
-        valideApiConfig(somaFmConfig.getApi());
+        validateApiConfig(somaFmConfig.getApi());
       }
     }
   }
@@ -43,7 +43,7 @@ public final class ConfigLoader {
     }
   }
 
-  private static void valideApiConfig(ApiConfig apiConfig) {
+  private static void validateApiConfig(ApiConfig apiConfig) {
     if (apiConfig == null || !apiConfig.isOk()) {
       throw new IllegalStateException("API config is missing or invalid! Exiting.");
     }

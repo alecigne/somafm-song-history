@@ -16,7 +16,7 @@ permissions:
 
 jobs:
 
-  #  Run unit tests only, no integration tests.
+  # Run unit tests only, no integration tests.
   unit-tests:
     runs-on: ubuntu-latest
     steps:
@@ -93,6 +93,7 @@ jobs:
   # Build container image using the artifact from the previous job.
   # If `run-smoke` is true, also run a smoke-test to check the container behaves as expected.
   # If `publish-image` is true, also push the image to Dockerhub.
+  # TODO Upload image as artifact and introduce dedicated smoke-test + publish jobs.
   image:
     runs-on: ubuntu-latest
     needs: package

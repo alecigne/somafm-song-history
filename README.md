@@ -2,8 +2,6 @@
 
 `somafm-song-history` is a Java application that retrieves [SomaFM][soma]'s recently played songs.
 
-Current version is v0.6.0.
-
 Please support SomaFM's awesome work [here][soma-support].
 
 # About
@@ -24,20 +22,21 @@ This project uses [somafm-recentlib][lib] through [JitPack][jitpack].
 This mode runs a Javalin server that exposes a REST API. The application runs continuously and
 update its database regularly for a given set of channels, according to the config.
 
-This is the main mode; the other two modes below are historical. I kept them... because I can! :)
+This is the main mode; the other two modes below are historical. I keep them... because I can! :)
 
 ### Display mode
 
-Prints recently played songs in the console for a given channel.
+This mode prints recently played songs in the console for a given channel.
 
-### Save mode (or "batch" mode)
+### Save mode
 
-Saves recently played songs to a database for a given channel.
+This mode saves recently played songs to a database for a given channel.
 
 ## Using Podman (or Docker)
 
-This program is meant to be self-hosted in `api` mode. I personally use Podman and Quadlet for this.
-Below are "manual" Podman commands you can run to get started. They should work with Docker as well.
+This program is primarily meant to be self-hosted in `api` mode. I personally use Podman and Quadlet
+for this. Below are "manual" Podman commands you can run to get started. They should work with
+Docker as well.
 
 The container image is hosted on [DockerHub][dockerhub].
 
