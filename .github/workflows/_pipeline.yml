@@ -35,7 +35,7 @@ jobs:
       - name: Run unit tests
         run: ./mvnw -B --update-snapshots test
 
-  # Run integration tests only. Compile first, run them, then verify.
+  # Run integration tests only. Compile tests first, run them, then verify.
   integration-tests:
     runs-on: ubuntu-latest
     needs: unit-tests
@@ -55,7 +55,7 @@ jobs:
       - name: Run integration tests
         run: ./mvnw -B --update-snapshots test-compile failsafe:integration-test failsafe:verify
 
-  # Package application, skipping tests that were already run above.
+  # Package application, skipping tests since they've been run above.
   # This job also uploads the packaged JAR as an artifact for later use in the image job.
   package:
     runs-on: ubuntu-latest
@@ -91,8 +91,8 @@ jobs:
           compression-level: 0
 
   # Build container image using the artifact from the previous job.
-  # If `run-smoke` is true, also run a smoke-test to verify the container image.
-  # If `publish-image` is true, also push the container image to Docker Hub.
+  # If `run-smoke` is true, also run a smoke-test to check the container behaves as expected.
+  # If `publish-image` is true, also push the image to Dockerhub.
   image:
     runs-on: ubuntu-latest
     needs: package
@@ -130,30 +130,12 @@ jobs:
         with:
           context: .
           file: ./Containerfile
+          # Load the image into the Docker daemon only if we're going to run it afterwards.
           load: ${{ inputs.run-smoke || inputs.publish-image }}
           push: false
           # Here the tags are chosen based on whether we're publishing the image or not.
           tags: ${{ inputs.publish-image && steps.metadata.outputs.tags || format('somafm-song-history:{0}', github.sha) }}
           labels: ${{ inputs.publish-image && steps.metadata.outputs.labels || '' }}
-
-      - name: Create smoke-test config
-        if: inputs.run-smoke
-        run: |
-          cat > "$RUNNER_TEMP/application-smoke.conf" <<'EOF'
-          userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36"
-          timezone = "Europe/Paris"
-          db {
-            url = "jdbc:postgresql://smoke-db:5432/somafm"
-            user = "somafm"
-            password = "password"
-          }
-          server {
-            port = 7070
-          }
-          scheduler {
-            enabled = false
-          }
-          EOF
 
       - name: Start smoke-test database
         if: inputs.run-smoke
@@ -178,14 +160,14 @@ jobs:
       - name: Smoke-test container image
         if: inputs.run-smoke
         env:
-          IMAGE_TAGS: ${{ inputs.publish-image && steps.meta.outputs.tags || format('somafm-song-history:{0}', github.sha) }}
+          IMAGE_TAGS: ${{ inputs.publish-image && steps.metadata.outputs.tags || format('somafm-song-history:{0}', github.sha) }}
         run: |
           IMAGE_TAG=$(printf '%s\n' "$IMAGE_TAGS" | head -n1)
           docker run -d \
             --name smoke-app \
             --network smoke-net \
             -p 7070:7070 \
-            -v "$RUNNER_TEMP/application-smoke.conf:/application.conf:ro" \
+            -v "$GITHUB_WORKSPACE/.github/application-smoke.conf:/application.conf:ro" \
             "$IMAGE_TAG" \
             api
           for i in $(seq 1 30); do
@@ -207,7 +189,7 @@ jobs:
       - name: Push container image
         if: inputs.publish-image
         env:
-          IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
+          IMAGE_TAGS: ${{ steps.metadata.outputs.tags }}
         run: |
           printf '%s\n' "$IMAGE_TAGS" | while IFS= read -r tag; do
             [ -n "$tag" ] || continue
