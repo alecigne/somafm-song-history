@@ -10,5 +10,5 @@ jobs:
   pipeline:
     uses: ./.github/workflows/_pipeline.yml
     with:
-      run-smoke: false
+      run-smoke: true
       publish-image: false
