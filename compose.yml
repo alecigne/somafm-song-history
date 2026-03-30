@@ -1,6 +1,6 @@
 services:
   db:
-    image: docker.io/postgres:latest
+    image: docker.io/postgres:18
     container_name: somafm-song-history-db
     restart: always
     environment:
@@ -10,7 +10,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
 
 volumes:
   postgres_data:

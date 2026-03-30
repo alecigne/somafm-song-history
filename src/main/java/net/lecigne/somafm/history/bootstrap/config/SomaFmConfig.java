@@ -16,12 +16,24 @@ public class SomaFmConfig {
 
   private String userAgent;
   private String timezone;
+
+  /**
+   * Database configuration.
+   * <p>
+   * It is optional during serialization, but might cause a semantic error if not present during
+   * loading depending on the target mode.
+   */
   @Optional
-  private DbConfig dbConfig;
+  private DbConfig db;
+
+  /**
+   * API configuration.
+   * <p>
+   * It is optional during serialization, but might cause a semantic error if not present during
+   * loading depending on the target mode.
+   */
   @Optional
-  private ServerConfig serverConfig;
-  @Optional
-  private SchedulerConfig schedulerConfig;
+  private ApiConfig api;
 
   @NoArgsConstructor
   @Getter
@@ -30,13 +42,34 @@ public class SomaFmConfig {
     private String url;
     private String user;
     private String password;
+
+    public boolean isOk() {
+      return Stream.of(url, user, password).allMatch(Objects::nonNull);
+    }
+
   }
 
   @NoArgsConstructor
   @Getter
   @Setter
-  public static class ServerConfig {
+  public static class ApiConfig {
+
     private int port;
+    private SchedulerConfig scheduler;
+
+    public boolean isSchedulerEnabled() {
+      return scheduler.isEnabled();
+    }
+
+    public boolean isOk() {
+      return port > 0 && isSchedulerConfigOk();
+    }
+
+    private boolean isSchedulerConfigOk() {
+      if (!scheduler.isEnabled()) return true;
+      return scheduler.getPeriod().getSeconds() > 0 && Objects.nonNull(scheduler.getChannels()) && !scheduler.getChannels().isEmpty();
+    }
+
   }
 
   @NoArgsConstructor
@@ -44,53 +77,10 @@ public class SomaFmConfig {
   @Setter
   public static class SchedulerConfig {
     private boolean enabled;
+    @Optional
     private Duration period;
+    @Optional
     private List<String> channels;
-  }
-
-  public boolean isDbConfigured() {
-    return Objects.nonNull(dbConfig) && Stream.of(dbConfig.getUrl(), dbConfig.getUser(), dbConfig.getPassword()).allMatch(Objects::nonNull);
-  }
-
-  public boolean isServerConfigured() {
-    return Objects.nonNull(serverConfig) && serverConfig.getPort() > 0;
-  }
-
-  public boolean isSchedulerConfigured() {
-    return Objects.nonNull(schedulerConfig)
-        && schedulerConfig.isEnabled()
-        && schedulerConfig.getPeriod().getSeconds() > 0
-        && Objects.nonNull(schedulerConfig.getChannels())
-        && !schedulerConfig.getChannels().isEmpty();
-  }
-
-  /* Getters and setters for compatibility with user-friendly names in HOCON */
-
-  @Optional
-  public DbConfig getDb() {
-    return dbConfig;
-  }
-
-  public void setDb(DbConfig db) {
-    this.dbConfig = db;
-  }
-
-  @Optional
-  public SchedulerConfig getScheduler() {
-    return schedulerConfig;
-  }
-
-  public void setScheduler(SchedulerConfig scheduler) {
-    this.schedulerConfig = scheduler;
-  }
-
-  @Optional
-  public ServerConfig getServer() {
-    return serverConfig;
-  }
-
-  public void setServer(ServerConfig server) {
-    this.serverConfig = server;
   }
 
 }

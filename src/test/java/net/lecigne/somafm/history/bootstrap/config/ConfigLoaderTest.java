@@ -9,7 +9,7 @@ import java.time.Duration;
 import java.util.List;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.DbConfig;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.SchedulerConfig;
-import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.ServerConfig;
+import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.ApiConfig;
 import net.lecigne.somafm.history.domain.model.Mode;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.DisplayName;
@@ -30,7 +30,7 @@ class ConfigLoaderTest {
           userAgent = "ua"
           timezone = "Europe/Paris"
           """;
-      SomaFmConfig expectedSomaFmConfig = expectedConfig("ua", "Europe/Paris", null, null, null);
+      SomaFmConfig expectedSomaFmConfig = expectedConfig("ua", "Europe/Paris", null, null);
 
       // When
       SomaFmConfig somaFmConfig = ConfigLoader.loadForMode(ConfigFactory.parseString(minimalConfig), Mode.DISPLAY);
@@ -50,21 +50,20 @@ class ConfigLoaderTest {
             user = "somafm"
             password = "password"
           }
-          server {
+          api {
             port = 7070
-          }
-          scheduler {
-            enabled = true
-            period = "10m"
-            channels = ["dronezone"]
+            scheduler {
+              enabled = true
+              period = "10m"
+              channels = ["dronezone"]
+            }
           }
           """;
       SomaFmConfig expectedSomaFmConfig = expectedConfig(
           "ua",
           "Europe/Paris",
           dbConfig("jdbc:postgresql://localhost:5432/somafm", "somafm", "password"),
-          serverConfig(7070),
-          schedulerConfig(true, Duration.ofMinutes(10), List.of("dronezone")));
+          apiConfig(7070, true, Duration.ofMinutes(10), List.of("dronezone")));
 
       // When
       SomaFmConfig somaFmConfig = ConfigLoader.loadForMode(ConfigFactory.parseString(fullConfig), Mode.DISPLAY);
@@ -93,7 +92,6 @@ class ConfigLoaderTest {
           "ua",
           "Europe/Paris",
           dbConfig("jdbc:postgresql://localhost:5432/somafm", "somafm", "password"),
-          null,
           null);
 
       // When
@@ -117,7 +115,7 @@ class ConfigLoaderTest {
       // Then
       assertThatThrownBy(call)
           .isInstanceOf(IllegalStateException.class)
-          .hasMessage("DB-backed modes require db config! Exiting.");
+          .hasMessage("Database config is missing or invalid! Exiting.");
     }
 
     @Test
@@ -156,21 +154,20 @@ class ConfigLoaderTest {
             user = "somafm"
             password = "password"
           }
-          server {
+          api {
             port = 7070
-          }
-          scheduler {
-            enabled = true
-            period = "10m"
-            channels = ["dronezone"]
+            scheduler {
+              enabled = true
+              period = "10m"
+              channels = ["dronezone"]
+            }
           }
           """;
       SomaFmConfig expectedSomaFmConfig = expectedConfig(
           "ua",
           "Europe/Paris",
           dbConfig("jdbc:postgresql://localhost:5432/somafm", "somafm", "password"),
-          serverConfig(7070),
-          schedulerConfig(true, Duration.ofMinutes(10), List.of("dronezone")));
+          apiConfig(7070, true, Duration.ofMinutes(10), List.of("dronezone")));
 
       // When
       SomaFmConfig somaFmConfig = ConfigLoader.loadForMode(ConfigFactory.parseString(validApiConfig), Mode.API);
@@ -180,7 +177,7 @@ class ConfigLoaderTest {
     }
 
     @Test
-    void should_reject_when_scheduler_config_is_missing() {
+    void should_accept_when_scheduler_is_disabled() {
       // Given
       String apiConfigWithoutScheduler = """
           userAgent = "ua"
@@ -190,18 +187,19 @@ class ConfigLoaderTest {
             user = "somafm"
             password = "password"
           }
-          server {
+          api {
             port = 7070
+            scheduler {
+              enabled = false
+            }
           }
           """;
 
-      // "When"
-      ThrowingCallable call = () -> ConfigLoader.loadForMode(ConfigFactory.parseString(apiConfigWithoutScheduler), Mode.API);
+      // When
+      SomaFmConfig somaFmConfig = ConfigLoader.loadForMode(ConfigFactory.parseString(apiConfigWithoutScheduler), Mode.API);
 
       // Then
-      assertThatThrownBy(call)
-          .isInstanceOf(IllegalStateException.class)
-          .hasMessage("API mode requires scheduler config! Exiting.");
+      assertThat(somaFmConfig.getApi().isSchedulerEnabled()).isFalse();
     }
 
     @Test
@@ -210,23 +208,23 @@ class ConfigLoaderTest {
       String apiConfigWithoutDb = """
           userAgent = "ua"
           timezone = "Europe/Paris"
-          server {
+          api {
             port = 7070
-          }
-          scheduler {
-            enabled = true
-            period = "10m"
-            channels = ["dronezone"]
+            scheduler {
+              enabled = true
+              period = "10m"
+              channels = ["dronezone"]
+            }
           }
           """;
-      ThrowingCallable call = () -> ConfigLoader.loadForMode(ConfigFactory.parseString(apiConfigWithoutDb), Mode.API);
 
-      // When
+      // "When"
+      ThrowingCallable call = () -> ConfigLoader.loadForMode(ConfigFactory.parseString(apiConfigWithoutDb), Mode.API);
 
       // Then
       assertThatThrownBy(call)
           .isInstanceOf(IllegalStateException.class)
-          .hasMessage("DB-backed modes require db config! Exiting.");
+          .hasMessage("Database config is missing or invalid! Exiting.");
     }
 
     @Test
@@ -239,18 +237,18 @@ class ConfigLoaderTest {
             url = "jdbc:postgresql://localhost:5432/somafm"
             user = "somafm"
           }
-          server {
+          api {
             port = 7070
-          }
-          scheduler {
-            enabled = true
-            period = "10m"
-            channels = ["dronezone"]
+            scheduler {
+              enabled = true
+              period = "10m"
+              channels = ["dronezone"]
+            }
           }
           """;
-      ThrowingCallable call = () -> ConfigLoader.loadForMode(ConfigFactory.parseString(apiConfigWithoutDbPassword), Mode.API);
 
-      // When
+      // "When"
+      ThrowingCallable call = () -> ConfigLoader.loadForMode(ConfigFactory.parseString(apiConfigWithoutDbPassword), Mode.API);
 
       // Then
       assertThatThrownBy(call)
@@ -269,11 +267,6 @@ class ConfigLoaderTest {
             user = "somafm"
             password = "password"
           }
-          scheduler {
-            enabled = true
-            period = "10m"
-            channels = ["dronezone"]
-          }
           """;
 
       // "When"
@@ -282,7 +275,7 @@ class ConfigLoaderTest {
       // Then
       assertThatThrownBy(call)
           .isInstanceOf(IllegalStateException.class)
-          .hasMessage("API mode requires server config! Exiting.");
+          .hasMessage("API config is missing or invalid! Exiting.");
     }
 
     @Test
@@ -296,13 +289,13 @@ class ConfigLoaderTest {
             user = "somafm"
             password = "password"
           }
-          server {
+          api {
             port = 0
-          }
-          scheduler {
-            enabled = true
-            period = "10m"
-            channels = ["dronezone"]
+            scheduler {
+              enabled = true
+              period = "10m"
+              channels = ["dronezone"]
+            }
           }
           """;
 
@@ -312,53 +305,22 @@ class ConfigLoaderTest {
       // Then
       assertThatThrownBy(call)
           .isInstanceOf(IllegalStateException.class)
-          .hasMessage("API mode requires server config! Exiting.");
+          .hasMessage("API config is missing or invalid! Exiting.");
     }
 
-    @Test
-    void should_reject_when_scheduler_config_is_invalid() {
-      // Given
-      String apiConfigWithInvalidScheduler = """
-          userAgent = "ua"
-          timezone = "Europe/Paris"
-          db {
-            url = "jdbc:postgresql://localhost:5432/somafm"
-            user = "somafm"
-            password = "password"
-          }
-          server {
-            port = 7070
-          }
-          scheduler {
-            enabled = false
-            period = "10m"
-            channels = ["dronezone"]
-          }
-          """;
-
-      // "When"
-      ThrowingCallable call = () -> ConfigLoader.loadForMode(ConfigFactory.parseString(apiConfigWithInvalidScheduler), Mode.API);
-
-      // Then
-      assertThatThrownBy(call)
-          .isInstanceOf(IllegalStateException.class)
-          .hasMessage("API mode requires scheduler config! Exiting.");
-    }
   }
 
   private static SomaFmConfig expectedConfig(
       String userAgent,
       String timezone,
       DbConfig dbConfig,
-      ServerConfig serverConfig,
-      SchedulerConfig schedulerConfig
+      ApiConfig apiConfig
   ) {
     var config = new SomaFmConfig();
     config.setUserAgent(userAgent);
     config.setTimezone(timezone);
     config.setDb(dbConfig);
-    config.setServerConfig(serverConfig);
-    config.setSchedulerConfig(schedulerConfig);
+    config.setApi(apiConfig);
     return config;
   }
 
@@ -370,18 +332,15 @@ class ConfigLoaderTest {
     return dbConfig;
   }
 
-  private static ServerConfig serverConfig(int port) {
-    var serverConfig = new ServerConfig();
-    serverConfig.setPort(port);
-    return serverConfig;
-  }
-
-  private static SchedulerConfig schedulerConfig(boolean enabled, Duration period, List<String> channels) {
+  private static ApiConfig apiConfig(int port, boolean enabled, Duration period, List<String> channels) {
+    var apiConfig = new ApiConfig();
+    apiConfig.setPort(port);
     var schedulerConfig = new SchedulerConfig();
     schedulerConfig.setEnabled(enabled);
     schedulerConfig.setPeriod(period);
     schedulerConfig.setChannels(channels);
-    return schedulerConfig;
+    apiConfig.setScheduler(schedulerConfig);
+    return apiConfig;
   }
 
 }

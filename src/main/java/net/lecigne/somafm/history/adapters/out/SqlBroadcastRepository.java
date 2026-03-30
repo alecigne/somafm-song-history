@@ -133,7 +133,7 @@ public class SqlBroadcastRepository implements BroadcastRepository {
 
   public static BroadcastRepository init(SomaFmConfig config) {
     var hikariConfig = new HikariConfig();
-    DbConfig db = config.getDbConfig();
+    DbConfig db = config.getDb();
     hikariConfig.setJdbcUrl(db.getUrl());
     hikariConfig.setUsername(db.getUser());
     hikariConfig.setPassword(db.getPassword());

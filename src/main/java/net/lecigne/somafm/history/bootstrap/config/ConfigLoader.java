@@ -4,6 +4,8 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigBeanFactory;
 import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
+import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.ApiConfig;
+import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.DbConfig;
 import net.lecigne.somafm.history.domain.model.Mode;
 
 @Slf4j
@@ -18,39 +20,32 @@ public final class ConfigLoader {
 
   static SomaFmConfig loadForMode(Config config, Mode mode) {
     SomaFmConfig somaFmConfig = ConfigBeanFactory.create(config, SomaFmConfig.class);
-    validateModeConfig(mode, somaFmConfig);
+    validateForMode(somaFmConfig, mode);
     return somaFmConfig;
   }
 
-  private static void validateModeConfig(Mode mode, SomaFmConfig somaFmConfig) {
+  private static void validateForMode(SomaFmConfig somaFmConfig, Mode mode) {
     switch (mode) {
       case DISPLAY -> {
         // No validation necessary in DISPLAY mode
       }
-      case SAVE -> validateDbConfig(somaFmConfig);
+      case SAVE -> validateDbConfig(somaFmConfig.getDb());
       case API -> {
-        validateDbConfig(somaFmConfig);
-        validateServerConfig(somaFmConfig);
-        validateSchedulerConfig(somaFmConfig);
+        validateDbConfig(somaFmConfig.getDb());
+        valideApiConfig(somaFmConfig.getApi());
       }
     }
   }
 
-  private static void validateDbConfig(SomaFmConfig somaFmConfig) {
-    if (!somaFmConfig.isDbConfigured()) {
-      throw new IllegalStateException("DB-backed modes require db config! Exiting.");
+  private static void validateDbConfig(DbConfig dbConfig) {
+    if (dbConfig == null || !dbConfig.isOk()) {
+      throw new IllegalStateException("Database config is missing or invalid! Exiting.");
     }
   }
 
-  private static void validateServerConfig(SomaFmConfig somaFmConfig) {
-    if (!somaFmConfig.isServerConfigured()) {
-      throw new IllegalStateException("API mode requires server config! Exiting.");
-    }
-  }
-
-  private static void validateSchedulerConfig(SomaFmConfig somaFmConfig) {
-    if (!somaFmConfig.isSchedulerConfigured()) {
-      throw new IllegalStateException("API mode requires scheduler config! Exiting.");
+  private static void valideApiConfig(ApiConfig apiConfig) {
+    if (apiConfig == null || !apiConfig.isOk()) {
+      throw new IllegalStateException("API config is missing or invalid! Exiting.");
     }
   }
 

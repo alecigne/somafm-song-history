@@ -15,8 +15,8 @@ import net.lecigne.somafm.history.application.ports.out.SomaFmRepository;
 import net.lecigne.somafm.history.application.services.SomaFmSongHistoryService;
 import net.lecigne.somafm.history.bootstrap.config.ConfigLoader;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig;
+import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.ApiConfig;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.DbConfig;
-import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.ServerConfig;
 import net.lecigne.somafm.history.domain.model.Mode;
 import net.lecigne.somafm.recentlib.SomaFm;
 import org.flywaydb.core.Flyway;
@@ -41,14 +41,14 @@ public class Main {
     SomaFmSongHistoryService service = SomaFmSongHistoryService.init(broadcastRepo, somaFmRepo);
     switch (mode) {
       case SAVE, DISPLAY -> CLI.init(service, somaFmConfig).run(args);
-      case API -> {
-        SaveScheduler.init(service, somaFmConfig.getSchedulerConfig());
-        initApiServer(service, somaFmConfig.getServerConfig());
-      }
+      case API -> initApiMode(service, somaFmConfig.getApi());
     }
   }
 
-  private static void initApiServer(SomaFmSongHistoryService service, ServerConfig serverConfig) {
+  private static void initApiMode(SomaFmSongHistoryService service, ApiConfig apiConfig) {
+    if (apiConfig.isSchedulerEnabled()) {
+      SaveScheduler.init(service, apiConfig.getScheduler());
+    }
     Javalin apiServer = Javalin.create(config -> config.jsonMapper(
         new JavalinJackson().updateMapper(mapper -> {
           mapper.registerModule(new JavaTimeModule());
@@ -56,12 +56,12 @@ public class Main {
         })));
     JavalinRestController javalinRestController = JavalinRestController.init(service, service);
     javalinRestController.registerRoutes(apiServer);
-    apiServer.start(serverConfig.getPort());
-    log.info("API server started on port {}", serverConfig.getPort());
+    apiServer.start(apiConfig.getPort());
+    log.info("API server started on port {}", apiConfig.getPort());
   }
 
   private static void initDb(SomaFmConfig somaFmConfig) {
-    DbConfig dbConfig = somaFmConfig.getDbConfig();
+    DbConfig dbConfig = somaFmConfig.getDb();
     Flyway.configure()
         .dataSource(dbConfig.getUrl(), dbConfig.getUser(), dbConfig.getPassword())
         .load()

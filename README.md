@@ -48,10 +48,10 @@ podman run --rm -it docker.io/alecigne/somafm-song-history:v0.6.0 "display" "Dro
 ```
 
 To run the application in `save` mode, you will need a PostgreSQL database. You can start one on
-port 5432 with the provided Compose file:
+port 5432 with the provided Compose file (PostgreSQL 18):
 
 ``` shell
-podman-compose up -d db
+podman-compose up -d
 ```
 
 It creates a `somafm-song-history-db` PostgreSQL container that matches the parameters provided in
