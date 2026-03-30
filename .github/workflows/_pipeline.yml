@@ -147,7 +147,7 @@ jobs:
             -e POSTGRES_DB=somafm \
             -e POSTGRES_USER=somafm \
             -e POSTGRES_PASSWORD=password \
-            postgres:16-alpine
+            postgres:18-alpine
           for i in $(seq 1 30); do
             if docker exec smoke-db pg_isready -U somafm -d somafm; then
               exit 0
