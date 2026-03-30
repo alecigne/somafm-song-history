@@ -1,14 +1,16 @@
-name: CI
+name: Smoke
 
 on:
-  pull_request:
+  push:
     branches:
       - master
       - develop
+    paths-ignore:
+      - "**.md"
 
 jobs:
   pipeline:
     uses: ./.github/workflows/_pipeline.yml
     with:
-      run-smoke: false
+      run-smoke: true
       publish-image: false

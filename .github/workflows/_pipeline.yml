@@ -1,0 +1,232 @@
+name: Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      run-smoke:
+        required: true
+        type: boolean
+      publish-image:
+        required: true
+        type: boolean
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+
+  #  Run unit tests only, no integration tests.
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Run unit tests
+        run: ./mvnw -B --update-snapshots test
+
+  # Run integration tests only. Compile first, run them, then verify.
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Run integration tests
+        run: ./mvnw -B --update-snapshots test-compile failsafe:integration-test failsafe:verify
+
+  # Package application, skipping tests that were already run above.
+  # This job also uploads the packaged JAR as an artifact for later use in the image job.
+  package:
+    runs-on: ubuntu-latest
+    needs:
+      - unit-tests
+      - integration-tests
+    outputs:
+      jar-artifact-id: ${{ steps.upload-jar.outputs.artifact-id }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Package application
+        run: ./mvnw -B --update-snapshots -Dmaven.test.skip=true package
+
+      - name: Upload packaged JAR
+        id: upload-jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: application-jar
+          path: target/somafm-song-history-with-dependencies.jar
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+  # Build container image using the artifact from the previous job.
+  # If `run-smoke` is true, also run a smoke-test to verify the container image.
+  # If `publish-image` is true, also push the container image to Docker Hub.
+  image:
+    runs-on: ubuntu-latest
+    needs: package
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Download packaged JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: application-jar
+          path: target
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Derive Docker image metadata
+        if: inputs.publish-image
+        id: metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: docker.io/alecigne/somafm-song-history
+          tags: |
+            type=ref,event=tag
+            type=raw,value=latest
+
+      - name: Build container image
+        id: build-image
+        uses: docker/build-push-action@v7
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: "false"
+          DOCKER_BUILD_SUMMARY: "false"
+        with:
+          context: .
+          file: ./Containerfile
+          load: ${{ inputs.run-smoke || inputs.publish-image }}
+          push: false
+          # Here the tags are chosen based on whether we're publishing the image or not.
+          tags: ${{ inputs.publish-image && steps.metadata.outputs.tags || format('somafm-song-history:{0}', github.sha) }}
+          labels: ${{ inputs.publish-image && steps.metadata.outputs.labels || '' }}
+
+      - name: Create smoke-test config
+        if: inputs.run-smoke
+        run: |
+          cat > "$RUNNER_TEMP/application-smoke.conf" <<'EOF'
+          userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36"
+          timezone = "Europe/Paris"
+          db {
+            url = "jdbc:postgresql://smoke-db:5432/somafm"
+            user = "somafm"
+            password = "password"
+          }
+          server {
+            port = 7070
+          }
+          scheduler {
+            enabled = false
+          }
+          EOF
+
+      - name: Start smoke-test database
+        if: inputs.run-smoke
+        run: |
+          docker network create smoke-net
+          docker run -d \
+            --name smoke-db \
+            --network smoke-net \
+            -e POSTGRES_DB=somafm \
+            -e POSTGRES_USER=somafm \
+            -e POSTGRES_PASSWORD=password \
+            postgres:16-alpine
+          for i in $(seq 1 30); do
+            if docker exec smoke-db pg_isready -U somafm -d somafm; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs smoke-db
+          exit 1
+
+      - name: Smoke-test container image
+        if: inputs.run-smoke
+        env:
+          IMAGE_TAGS: ${{ inputs.publish-image && steps.meta.outputs.tags || format('somafm-song-history:{0}', github.sha) }}
+        run: |
+          IMAGE_TAG=$(printf '%s\n' "$IMAGE_TAGS" | head -n1)
+          docker run -d \
+            --name smoke-app \
+            --network smoke-net \
+            -p 7070:7070 \
+            -v "$RUNNER_TEMP/application-smoke.conf:/application.conf:ro" \
+            "$IMAGE_TAG" \
+            api
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:7070/broadcasts > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs smoke-app
+          exit 1
+
+      - name: Log in to Docker Hub
+        if: inputs.publish-image
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push container image
+        if: inputs.publish-image
+        env:
+          IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          printf '%s\n' "$IMAGE_TAGS" | while IFS= read -r tag; do
+            [ -n "$tag" ] || continue
+            docker push "$tag"
+          done
+
+      - name: Clean up smoke-test containers
+        if: always() && inputs.run-smoke
+        run: |
+          docker rm -f smoke-app smoke-db || true
+          docker network rm smoke-net || true
+
+      - name: Delete packaged JAR artifact
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.deleteArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: Number("${{ needs.package.outputs.jar-artifact-id }}")
+            })
