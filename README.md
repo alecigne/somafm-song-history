@@ -13,32 +13,44 @@ This project uses [somafm-recentlib][lib] through [JitPack][jitpack].
 
 # Usage
 
-## Modes
+This program is primarily meant to be self-hosted. I personally use Podman and Quadlet for this.
+Below are "manual" Podman commands you can run to get started. They should work with Docker as well.
+The container image is hosted on [DockerHub][dockerhub].
 
 `somafm-song-history` can be used in 3 different modes.
 
-### API mode
+## API mode
 
 This mode runs a Javalin server that exposes a REST API. The application runs continuously and
 update its database regularly for a given set of channels, according to the config.
 
 This is the main mode; the other two modes below are historical. I keep them... because I can! :)
 
-### Display mode
+To run the application in `api` mode, you will need a PostgreSQL database. You can start one on
+port 5432 with the provided Compose file (PostgreSQL 18):
+
+``` shell
+podman-compose up -d
+```
+
+It will create a `somafm-song-history-db` PostgreSQL container that matches the parameters provided
+in [the default config][config]. The application will setup the database on startup using Flyway.
+Then start a container using the published image:
+
+``` shell
+podman run -d --name somafm-song-history-api --network=host docker.io/alecigne/somafm-song-history:v0.6.0 "api"
+```
+
+And visit:
+
+- `http://localhost:7070/broadcasts` to get a paginated list of broadcasts from the DB.
+- `http://localhost:7070/broadcasts/recent?channel=dronezone` for recent broadcasts from Drone Zone.
+
+In these manual tests, note that `--network=host` is required to access the database.
+
+## Display mode
 
 This mode prints recently played songs in the console for a given channel.
-
-### Save mode
-
-This mode saves recently played songs to a database for a given channel.
-
-## Using Podman (or Docker)
-
-This program is primarily meant to be self-hosted in `api` mode. I personally use Podman and Quadlet
-for this. Below are "manual" Podman commands you can run to get started. They should work with
-Docker as well.
-
-The container image is hosted on [DockerHub][dockerhub].
 
 To run the application in `display mode` with [the default config][config]:
 
@@ -46,32 +58,14 @@ To run the application in `display mode` with [the default config][config]:
 podman run --rm -it docker.io/alecigne/somafm-song-history:v0.6.0 "display" "Drone Zone"
 ```
 
-To run the application in `save` mode, you will need a PostgreSQL database. You can start one on
-port 5432 with the provided Compose file (PostgreSQL 18):
+## Save mode
 
-``` shell
-podman-compose up -d
-```
-
-It creates a `somafm-song-history-db` PostgreSQL container that matches the parameters provided in
-the default config. Then run the published image:
+This mode saves recently played songs to a database for a given channel, then exits. You will need
+the same database as in `api` mode. Once it is up, run:
 
 ``` shell
 podman run --rm -it --network=host docker.io/alecigne/somafm-song-history:v0.6.0 "save" "Drone Zone"
 ```
-
-In these manual tests, note that `--network=host` is required to access the database.
-
-You can use the same database in `api` mode:
-
-``` shell
-podman run -d --name somafm-song-history-api --network=host docker.io/alecigne/somafm-song-history:v0.6.0 "api"
-```
-
-Then visit:
-
-- `http://localhost:7070/broadcasts` to get a paginated list of broadcasts from the DB.
-- `http://localhost:7070/broadcasts/recent?channel=dronezone` for recent broadcasts from Drone Zone.
 
 ## Using a custom config
 
@@ -84,7 +78,7 @@ Then pass the config to Podman with your chosen mode:
 podman run -d --network=host -v /path/to/application.conf:/application.conf docker.io/alecigne/somafm-song-history:v0.6.0 "api"
 ```
 
-## Cleanup
+## Cleaning up after your tests
 
 To stop and remove the API container:
 
@@ -111,7 +105,7 @@ Grab a Jar from the [releases][releases] section or build it from source if you 
 doing. Use the commands above if you need a Postgres instance. Then:
 
 ``` shell
-java -jar somafm-song-history.jar "display" "Drone Zone"
+java -jar somafm-song-history.jar "save" "Drone Zone"
 ```
 
 or
