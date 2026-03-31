@@ -1,4 +1,10 @@
-name: Smoke
+# Workflow run on integration on master or develop.
+# 1. Run unit tests.
+# 2. Run integration tests.
+# 3. Package.
+# 4. Build image.
+# 5. Run smoke tests on container.
+name: Integration
 
 on:
   push:

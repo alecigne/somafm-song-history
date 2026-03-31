@@ -1,3 +1,10 @@
+# Workflow run on release.
+# 1. Run unit tests.
+# 2. Run integration tests.
+# 3. Package.
+# 4. Build image.
+# 5. Run smoke tests on container.
+# 6. Publish image on Dockerhub.
 name: Release
 
 on:
