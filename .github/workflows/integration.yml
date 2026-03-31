@@ -1,0 +1,22 @@
+# Workflow run on integration on master or develop.
+# 1. Run unit tests.
+# 2. Run integration tests.
+# 3. Package.
+# 4. Build image.
+# 5. Run smoke tests on container.
+name: Integration
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+    paths-ignore:
+      - "**.md"
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/_pipeline.yml
+    with:
+      run-smoke: true
+      publish-image: false

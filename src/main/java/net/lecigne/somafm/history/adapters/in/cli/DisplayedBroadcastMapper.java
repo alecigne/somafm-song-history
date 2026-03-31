@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import lombok.RequiredArgsConstructor;
-import net.lecigne.somafm.history.domain.DisplayableBroadcast;
 import net.lecigne.somafm.recentlib.Broadcast;
 
 @RequiredArgsConstructor

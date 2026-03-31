@@ -5,5 +5,5 @@ import net.lecigne.somafm.recentlib.Broadcast;
 import net.lecigne.somafm.recentlib.Channel;
 
 public interface SomaFmRepository {
-  List<Broadcast> getRecentBroadcasts(Channel channel);
+  List<Broadcast> fetchRecentBroadcasts(Channel channel);
 }

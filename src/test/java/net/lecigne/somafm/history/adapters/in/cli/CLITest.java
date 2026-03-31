@@ -15,7 +15,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Stream;
-import net.lecigne.somafm.history.application.ports.in.SomaFmSongHistory;
+import net.lecigne.somafm.history.application.ports.in.RunCommandUseCase;
 import net.lecigne.somafm.recentlib.Broadcast;
 import net.lecigne.somafm.recentlib.SomaFmException;
 import nl.altindag.log.LogCaptor;
@@ -31,20 +31,20 @@ import org.mockito.Mockito;
 @DisplayName("The CLI")
 class CLITest {
 
-  private SomaFmSongHistory api;
+  private RunCommandUseCase runCommandUseCase;
   // Things are easier with the real mapper
   private final DisplayedBroadcastMapper mapper = new DisplayedBroadcastMapper(ZoneId.of("Europe/Paris"));
   private CLI cli;
 
   @BeforeEach
   void setUp() {
-    api = Mockito.mock(SomaFmSongHistory.class);
-    cli = new CLI(api, mapper);
+    runCommandUseCase = Mockito.mock(RunCommandUseCase.class);
+    cli = new CLI(runCommandUseCase, mapper);
   }
 
   @AfterEach
   void tearDown() {
-    Mockito.reset(api);
+    Mockito.reset(runCommandUseCase);
   }
 
   @Test
@@ -80,7 +80,7 @@ class CLITest {
   @Test
   void should_log_if_broadcast_retrieval_fails() {
     // Given
-    given(api.run(any())).willThrow(SomaFmException.class);
+    given(runCommandUseCase.runCommand(any())).willThrow(SomaFmException.class);
     var expected = "Error while fetching broadcasts.";
 
     try (LogCaptor logCaptor = LogCaptor.forClass(CLI.class)) {
@@ -97,7 +97,7 @@ class CLITest {
   void should_run_command(String action) throws Exception {
     // Given
     var args = new String[]{action, "Drone Zone"};
-    given(api.run(any())).willReturn(Fixtures.getRecentBroadcasts());
+    given(runCommandUseCase.runCommand(any())).willReturn(Fixtures.getRecentBroadcasts());
     var expected = Fixtures.getDisplayedRecentBroadcasts().replaceAll("[\\r\\n]", "");
 
     // When
@@ -121,20 +121,20 @@ class CLITest {
     private static List<Broadcast> getRecentBroadcasts() {
       return List.of(
           Broadcast.builder()
-                   .time(Instant.parse("2021-01-01T13:00:00.00Z"))
-                   .channel(DRONE_ZONE)
-                   .song(dirkSerriesSongFixture())
-                   .build(),
+              .time(Instant.parse("2021-01-01T13:00:00.00Z"))
+              .channel(DRONE_ZONE)
+              .song(dirkSerriesSongFixture())
+              .build(),
           Broadcast.builder()
-                   .time(Instant.parse("2021-01-01T13:15:00.00Z"))
-                   .channel(DRONE_ZONE)
-                   .song(igneousFlameSongFixture())
-                   .build(),
+              .time(Instant.parse("2021-01-01T13:15:00.00Z"))
+              .channel(DRONE_ZONE)
+              .song(igneousFlameSongFixture())
+              .build(),
           Broadcast.builder()
-                   .time(Instant.parse("2021-01-01T13:20:00.00Z"))
-                   .channel(DRONE_ZONE)
-                   .song(breakSongFixture())
-                   .build());
+              .time(Instant.parse("2021-01-01T13:20:00.00Z"))
+              .channel(DRONE_ZONE)
+              .song(breakSongFixture())
+              .build());
     }
 
     private static String getDisplayedRecentBroadcasts() {

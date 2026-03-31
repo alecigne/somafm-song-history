@@ -14,10 +14,10 @@ import java.util.List;
 import net.lecigne.somafm.history.adapters.in.cli.CLI;
 import net.lecigne.somafm.history.adapters.out.HtmlSomaFmRepository;
 import net.lecigne.somafm.history.adapters.out.SqlBroadcastRepository;
-import net.lecigne.somafm.history.application.ports.in.SomaFmSongHistory;
+import net.lecigne.somafm.history.application.ports.in.RunCommandUseCase;
 import net.lecigne.somafm.history.application.ports.out.BroadcastRepository;
 import net.lecigne.somafm.history.application.ports.out.SomaFmRepository;
-import net.lecigne.somafm.history.application.services.DefaultSomaFmSongHistory;
+import net.lecigne.somafm.history.application.services.SomaFmSongHistoryService;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig;
 import net.lecigne.somafm.history.fixtures.TestRepository;
 import net.lecigne.somafm.recentlib.Broadcast;
@@ -60,16 +60,16 @@ class SomaFmSongHistoryIT {
     var hikariDataSource = new HikariDataSource(hikariConfig);
 
     Flyway.configure()
-          .dataSource(POSTGRES_CONTAINER.getJdbcUrl(), POSTGRES_CONTAINER.getUsername(), POSTGRES_CONTAINER.getPassword())
-          .load()
-          .migrate();
+        .dataSource(POSTGRES_CONTAINER.getJdbcUrl(), POSTGRES_CONTAINER.getUsername(), POSTGRES_CONTAINER.getPassword())
+        .load()
+        .migrate();
 
     // Application
     var somaFmConfig = new SomaFmConfig();
     somaFmConfig.setTimezone("Europe/Paris");
     SomaFmRepository somaFmRepository = HtmlSomaFmRepository.init(somaFm);
     BroadcastRepository repository = SqlBroadcastRepository.init(hikariDataSource);
-    SomaFmSongHistory init = DefaultSomaFmSongHistory.init(repository, somaFmRepository);
+    RunCommandUseCase init = SomaFmSongHistoryService.init(repository, somaFmRepository);
     testRepo = new TestRepository(hikariDataSource);
     cli = CLI.init(init, somaFmConfig);
   }
@@ -87,26 +87,26 @@ class SomaFmSongHistoryIT {
         .given(somaFm.fetchRecent(PredefinedChannel.DRONE_ZONE))
         .willReturn(List.of(
             Broadcast.builder()
-                     .time(Instant.parse("2021-01-01T13:00:00.00Z"))
-                     .channel(DRONE_ZONE)
-                     .song(dirkSerriesSongFixture())
-                     .build(),
+                .time(Instant.parse("2021-01-01T13:00:00.00Z"))
+                .channel(DRONE_ZONE)
+                .song(dirkSerriesSongFixture())
+                .build(),
             // Same song played twice
             Broadcast.builder()
-                     .time(Instant.parse("2021-01-01T13:02:00.00Z"))
-                     .channel(DRONE_ZONE)
-                     .song(dirkSerriesSongFixture())
-                     .build(),
+                .time(Instant.parse("2021-01-01T13:02:00.00Z"))
+                .channel(DRONE_ZONE)
+                .song(dirkSerriesSongFixture())
+                .build(),
             Broadcast.builder()
-                     .time(Instant.parse("2021-01-01T13:15:00.00Z"))
-                     .channel(DRONE_ZONE)
-                     .song(igneousFlameSongFixture())
-                     .build(),
+                .time(Instant.parse("2021-01-01T13:15:00.00Z"))
+                .channel(DRONE_ZONE)
+                .song(igneousFlameSongFixture())
+                .build(),
             Broadcast.builder()
-                     .time(Instant.parse("2021-01-01T13:20:00.00Z"))
-                     .channel(DRONE_ZONE)
-                     .song(breakSongFixture())
-                     .build()));
+                .time(Instant.parse("2021-01-01T13:20:00.00Z"))
+                .channel(DRONE_ZONE)
+                .song(breakSongFixture())
+                .build()));
 
     // When
     cli.run(args);

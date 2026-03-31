@@ -1,4 +1,4 @@
-package net.lecigne.somafm.history.domain;
+package net.lecigne.somafm.history.domain.model;
 
 public class UnknownChannelException extends RuntimeException {
 

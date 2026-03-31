@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:latest
+    image: docker.io/postgres:18-alpine
     container_name: somafm-song-history-db
     restart: always
     environment:
@@ -11,15 +11,6 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
-
-  app:
-    build: .
-    container_name: somafm-song-history
-    depends_on:
-      - db
-    network_mode: host
-    profiles:
-      - manual
 
 volumes:
   postgres_data:
