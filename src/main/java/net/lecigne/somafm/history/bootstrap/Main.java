@@ -49,14 +49,16 @@ public class Main {
     if (apiConfig.isSchedulerEnabled()) {
       SaveScheduler.init(service, apiConfig.getScheduler());
     }
-    Javalin apiServer = Javalin.create(config -> config.jsonMapper(
-        new JavalinJackson().updateMapper(mapper -> {
-          mapper.registerModule(new JavaTimeModule());
-          mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        })));
-    JavalinRestController javalinRestController = JavalinRestController.init(service, service);
-    javalinRestController.registerRoutes(apiServer);
-    apiServer.start(apiConfig.getPort());
+    JavalinRestController controller = JavalinRestController.init(service, service);
+    Javalin
+        .create(config -> {
+          config.jsonMapper(new JavalinJackson().updateMapper(mapper -> {
+            mapper.registerModule(new JavaTimeModule());
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+          }));
+          config.routes.apiBuilder(controller.routes());
+        })
+        .start(apiConfig.getPort());
     log.info("API server started on port {}", apiConfig.getPort());
   }
 

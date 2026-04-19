@@ -6,7 +6,7 @@
 
   <groupId>net.lecigne</groupId>
   <artifactId>somafm-song-history</artifactId>
-  <version>0.6.0</version>
+  <version>0.6.1-SNAPSHOT</version>
 
   <properties>
     <java.version>21</java.version>
@@ -15,7 +15,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.testing.version>3.5.5</maven.testing.version>
-    <flyway.version>12.2.0</flyway.version>
+    <flyway.version>12.4.0</flyway.version>
     <maven.compiler.version>3.15.0</maven.compiler.version>
     <lombok.version>1.18.44</lombok.version>
   </properties>
@@ -54,11 +54,10 @@
       <version>v0.2.3</version>
     </dependency>
     <!-- REST -->
-    <!-- TODO Update Javalin to v7 -->
     <dependency>
       <groupId>io.javalin</groupId>
       <artifactId>javalin</artifactId>
-      <version>6.7.0</version>
+      <version>7.1.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -103,7 +102,7 @@
     <dependency>
       <groupId>com.typesafe</groupId>
       <artifactId>config</artifactId>
-      <version>1.4.3</version>
+      <version>1.4.6</version>
     </dependency>
     <!-- Logging -->
     <dependency>
