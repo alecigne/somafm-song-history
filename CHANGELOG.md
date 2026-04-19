@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.6.1](https://github.com/alecigne/somafm-song-history/tree/v0.6.1) - 2026-04-19
+
+Update dependencies, including a switch from Javalin v6 to Javalin v7.
+
 ## [v0.6.0](https://github.com/alecigne/somafm-song-history/tree/v0.6.0) - 2026-03-31
 
 - Create an long-running `api` mode that retrives history regularly.

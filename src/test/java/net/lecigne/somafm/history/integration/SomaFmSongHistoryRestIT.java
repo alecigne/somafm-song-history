@@ -37,13 +37,14 @@ class SomaFmSongHistoryRestIT {
 
   @BeforeEach
   void setUp() {
-    app = Javalin.create(config -> config.jsonMapper(
-        new JavalinJackson().updateMapper(mapper -> {
-          mapper.registerModule(new JavaTimeModule());
-          mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        })));
     JavalinRestController controller = JavalinRestController.init(getBroadcastsUseCase, fetchRecentBroadcastsUseCase);
-    controller.registerRoutes(app);
+    app = Javalin.create(config -> {
+      config.jsonMapper(new JavalinJackson().updateMapper(mapper -> {
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+      }));
+      config.routes.apiBuilder(controller.routes());
+    });
     app.start(0);
     port = app.port();
   }
