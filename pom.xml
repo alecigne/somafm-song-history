@@ -6,7 +6,7 @@
 
   <groupId>net.lecigne</groupId>
   <artifactId>somafm-song-history</artifactId>
-  <version>0.6.1-SNAPSHOT</version>
+  <version>0.6.1</version>
 
   <properties>
     <java.version>21</java.version>
