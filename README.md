@@ -28,7 +28,7 @@ update its database regularly for a given set of channels, according to the conf
 Starting from v0.7.0, it also serves a simple UI to browse saved broadcasts and songs:
 
 <p align="center">
-  <img src="doc/20260502_172109_screenshot.png" alt="SomaFM Song History web UI" width="75%">
+  <img src="doc/ui.jpg" alt="SomaFM Song History web UI" width="75%">
 </p>
 
 To run the application in `api` mode, you will need a PostgreSQL database. You can start one on
