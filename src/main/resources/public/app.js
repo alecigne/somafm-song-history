@@ -10,9 +10,14 @@ const state = {
 const viewButtons = [...document.querySelectorAll(".view-button")];
 const summary = document.querySelector("#summary");
 const message = document.querySelector("#message");
+const firstPage = document.querySelector("#first-page");
 const previousPage = document.querySelector("#previous-page");
 const nextPage = document.querySelector("#next-page");
+const lastPage = document.querySelector("#last-page");
 const pageStatus = document.querySelector("#page-status");
+const pageJumpForm = document.querySelector("#page-jump-form");
+const pageJump = document.querySelector("#page-jump");
+const goPage = document.querySelector("#go-page");
 const pageSize = document.querySelector("#page-size");
 const tableHead = document.querySelector("#table-head");
 const tableBody = document.querySelector("#table-body");
@@ -26,17 +31,25 @@ viewButtons.forEach((button) => {
   });
 });
 
+firstPage.addEventListener("click", () => {
+  goToPage(1);
+});
+
 previousPage.addEventListener("click", () => {
-  if (state.page <= 1 || state.loading) return;
-  state.page -= 1;
-  void loadPage();
+  goToPage(state.page - 1);
 });
 
 nextPage.addEventListener("click", () => {
-  if (state.totalPages !== 0 && state.page >= state.totalPages) return;
-  if (state.loading) return;
-  state.page += 1;
-  void loadPage();
+  goToPage(state.page + 1);
+});
+
+lastPage.addEventListener("click", () => {
+  goToPage(state.totalPages);
+});
+
+pageJumpForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  goToPage(Number(pageJump.value));
 });
 
 pageSize.addEventListener("change", () => {
@@ -71,6 +84,25 @@ async function loadPage() {
     state.loading = false;
     renderControls();
   }
+}
+
+function goToPage(page) {
+  if (state.loading || state.totalPages === 0) return;
+
+  const targetPage = clampPage(page);
+  if (targetPage === state.page) {
+    pageJump.value = String(state.page);
+    return;
+  }
+
+  state.page = targetPage;
+  void loadPage();
+}
+
+function clampPage(page) {
+  if (!Number.isFinite(page)) return state.page;
+  const pageNumber = Math.trunc(page);
+  return Math.min(Math.max(pageNumber, 1), state.totalPages);
 }
 
 function renderShell() {
@@ -118,8 +150,16 @@ function renderError(error) {
 
 function renderControls() {
   const totalPages = state.totalPages;
+  const atFirstPage = state.page <= 1;
+  const atLastPage = totalPages === 0 || state.page >= totalPages;
+  firstPage.disabled = state.loading || atFirstPage;
   previousPage.disabled = state.loading || state.page <= 1;
-  nextPage.disabled = state.loading || totalPages === 0 || state.page >= totalPages;
+  nextPage.disabled = state.loading || atLastPage;
+  lastPage.disabled = state.loading || atLastPage;
+  pageJump.disabled = state.loading || totalPages === 0;
+  goPage.disabled = state.loading || totalPages === 0;
+  pageJump.max = totalPages === 0 ? "" : String(totalPages);
+  pageJump.value = totalPages === 0 ? "" : String(state.page);
   pageStatus.textContent = totalPages === 0 ? "Page 0 of 0" : `Page ${state.page} of ${totalPages}`;
 }
 

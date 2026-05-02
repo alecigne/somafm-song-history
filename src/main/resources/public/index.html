@@ -22,9 +22,16 @@
     <main>
       <section class="toolbar" aria-label="Pagination controls">
         <div class="page-controls">
-          <button type="button" id="previous-page">Previous</button>
+          <button type="button" id="first-page" class="icon-button" aria-label="First page" title="First page">|&lt;</button>
+          <button type="button" id="previous-page" class="icon-button" aria-label="Previous page" title="Previous page">&lt;</button>
           <span id="page-status">Page 1</span>
-          <button type="button" id="next-page">Next</button>
+          <button type="button" id="next-page" class="icon-button" aria-label="Next page" title="Next page">&gt;</button>
+          <button type="button" id="last-page" class="icon-button" aria-label="Last page" title="Last page">&gt;|</button>
+          <form id="page-jump-form" class="page-jump">
+            <label for="page-jump">Page</label>
+            <input type="number" id="page-jump" min="1" inputmode="numeric">
+            <button type="submit" id="go-page">Go</button>
+          </form>
         </div>
         <label class="size-control" for="page-size">
           Rows
