@@ -12,6 +12,7 @@ import static org.hamcrest.Matchers.hasSize;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.javalin.Javalin;
+import io.javalin.http.staticfiles.Location;
 import io.javalin.json.JavalinJackson;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
@@ -47,6 +48,7 @@ class SomaFmSongHistoryRestIT {
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
       }));
+      config.staticFiles.add("/public", Location.CLASSPATH);
       config.routes.apiBuilder(controller.routes());
     });
     app.start(0);
@@ -59,6 +61,21 @@ class SomaFmSongHistoryRestIT {
     getBroadcastsUseCase.reset();
     getSongsUseCase.reset();
     fetchRecentBroadcastsUseCase.reset();
+  }
+
+  @Test
+  void should_serve_web_ui() {
+    // Given
+    RequestSpecification req = given().port(port);
+
+    // When
+    Response response = req.get("/");
+
+    // Then
+    String body = response.then().statusCode(200).extract().asString();
+    assertThat(body)
+        .contains("<title>SomaFM Song History</title>")
+        .contains("app.js");
   }
 
   @Test

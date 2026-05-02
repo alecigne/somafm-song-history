@@ -3,6 +3,7 @@ package net.lecigne.somafm.history.bootstrap;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.javalin.Javalin;
+import io.javalin.http.staticfiles.Location;
 import io.javalin.json.JavalinJackson;
 import lombok.extern.slf4j.Slf4j;
 import net.lecigne.somafm.history.adapters.in.cli.CLI;
@@ -78,6 +79,7 @@ public class Main {
             mapper.registerModule(new JavaTimeModule());
             mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
           }));
+          config.staticFiles.add("/public", Location.CLASSPATH);
           config.routes.apiBuilder(controller.routes());
         })
         .start(apiConfig.getPort());

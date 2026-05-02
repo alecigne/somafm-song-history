@@ -40,7 +40,7 @@ public class JavalinRestController {
     int size = parseQueryInt(ctx, "size", DEFAULT_SIZE);
     try {
       Page<Broadcast> broadcastsPage = getBroadcastsUseCase.getBroadcasts(page, size);
-      ctx.json(BroadcastPageResponseDto.from(broadcastsPage));
+      ctx.json(BroadcastPageDto.from(broadcastsPage));
     } catch (IllegalArgumentException e) {
       throw new BadRequestResponse(e.getMessage());
     }
@@ -51,7 +51,7 @@ public class JavalinRestController {
     int size = parseQueryInt(ctx, "size", DEFAULT_SIZE);
     try {
       Page<Song> songsPage = getSongsUseCase.getSongs(page, size);
-      ctx.json(SongPageResponseDto.from(songsPage));
+      ctx.json(SongPageDto.from(songsPage));
     } catch (IllegalArgumentException e) {
       throw new BadRequestResponse(e.getMessage());
     }
@@ -64,7 +64,7 @@ public class JavalinRestController {
           .getByInternalName(channelAsString)
           .orElseThrow(IllegalArgumentException::new);
       List<Broadcast> broadcasts = fetchRecentBroadcastsUseCase.fetchRecent(channel);
-      ctx.json(broadcasts.stream().map(BroadcastResponseDto::from).toList());
+      ctx.json(broadcasts.stream().map(BroadcastDto::from).toList());
     } catch (IllegalArgumentException e) {
       throw new BadRequestResponse(e.getMessage());
     }
@@ -93,7 +93,8 @@ public class JavalinRestController {
   }
 
   public static JavalinRestController init(
-      GetBroadcastsUseCase getBroadcastsUseCase, GetSongsUseCase getSongsUseCase,
+      GetBroadcastsUseCase getBroadcastsUseCase,
+      GetSongsUseCase getSongsUseCase,
       FetchRecentBroadcastsUseCase fetchRecentBroadcastsUseCase) {
     return new JavalinRestController(getBroadcastsUseCase, getSongsUseCase, fetchRecentBroadcastsUseCase);
   }

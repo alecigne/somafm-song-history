@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SomaFM Song History</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/app.js" type="module"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>SomaFM Song History</h1>
+        <p id="summary" class="summary">Loading broadcasts...</p>
+      </div>
+      <nav class="view-switch" aria-label="Data view">
+        <button type="button" class="view-button is-active" data-view="broadcasts">Broadcasts</button>
+        <button type="button" class="view-button" data-view="songs">Songs</button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="toolbar" aria-label="Pagination controls">
+        <div class="page-controls">
+          <button type="button" id="previous-page">Previous</button>
+          <span id="page-status">Page 1</span>
+          <button type="button" id="next-page">Next</button>
+        </div>
+        <label class="size-control" for="page-size">
+          Rows
+          <select id="page-size">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+          </select>
+        </label>
+      </section>
+
+      <section id="message" class="message" role="status" aria-live="polite"></section>
+
+      <div class="table-shell">
+        <table>
+          <thead id="table-head"></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </main>
+  </body>
+</html>

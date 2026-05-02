@@ -4,20 +4,17 @@ import java.util.List;
 import net.lecigne.somafm.history.domain.model.Page;
 import net.lecigne.somafm.recentlib.Song;
 
-record SongPageResponseDto(
+record SongPageDto(
     int page,
     int size,
     long totalElements,
     int totalPages,
-    List<SongResponseDto> items
+    List<SongDto> items
 ) {
 
-  static SongPageResponseDto from(Page<Song> songPage) {
-    List<SongResponseDto> songs = songPage.items()
-        .stream()
-        .map(SongResponseDto::from)
-        .toList();
-    return new SongPageResponseDto(
+  static SongPageDto from(Page<Song> songPage) {
+    List<SongDto> songs = songPage.items().stream().map(SongDto::from).toList();
+    return new SongPageDto(
         songPage.number(),
         songPage.size(),
         songPage.totalElements(),
