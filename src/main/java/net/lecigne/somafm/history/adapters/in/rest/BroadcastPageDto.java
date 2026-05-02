@@ -4,20 +4,17 @@ import java.util.List;
 import net.lecigne.somafm.history.domain.model.Page;
 import net.lecigne.somafm.recentlib.Broadcast;
 
-record BroadcastPageResponseDto(
+record BroadcastPageDto(
     int page,
     int size,
     long totalElements,
     int totalPages,
-    List<BroadcastResponseDto> items
+    List<BroadcastDto> items
 ) {
 
-  static BroadcastPageResponseDto from(Page<Broadcast> broadcastPage) {
-    List<BroadcastResponseDto> items = broadcastPage.items()
-        .stream()
-        .map(BroadcastResponseDto::from)
-        .toList();
-    return new BroadcastPageResponseDto(
+  static BroadcastPageDto from(Page<Broadcast> broadcastPage) {
+    List<BroadcastDto> items = broadcastPage.items().stream().map(BroadcastDto::from).toList();
+    return new BroadcastPageDto(
         broadcastPage.number(),
         broadcastPage.size(),
         broadcastPage.totalElements(),

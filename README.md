@@ -2,9 +2,7 @@
 
 # About
 
-`somafm-song-history` is a Java application that retrieves [SomaFM][soma]'s recently played songs.
-
-Current stable version is v0.6.2.
+`somafm-song-history` is a Java application that archives [SomaFM][soma]'s recently played songs.
 
 This project is developed for my personal use, but I'll be glad to help if you encounter any
 [issue][issues].
@@ -19,14 +17,19 @@ This program is primarily meant to be self-hosted. I personally use Podman and Q
 Below are "manual" Podman commands you can run to get started. They should work with Docker as well.
 The container image is hosted on [DockerHub][dockerhub].
 
-`somafm-song-history` can be used in 3 different modes.
+`somafm-song-history` can be used in 3 different modes. API mode is the main mode; the other two
+modes below are historical. I keep them... because I can! :)
 
 ## API mode
 
 This mode runs a Javalin server that exposes a REST API. The application runs continuously and
 update its database regularly for a given set of channels, according to the config.
 
-This is the main mode; the other two modes below are historical. I keep them... because I can! :)
+Starting from v0.7.0, it also serves a simple UI to browse saved broadcasts and songs:
+
+<p align="center">
+  <img src="doc/20260502_172109_screenshot.png" alt="SomaFM Song History web UI" width="75%">
+</p>
 
 To run the application in `api` mode, you will need a PostgreSQL database. You can start one on
 port 5432 with the provided Compose file (PostgreSQL 18):
@@ -43,9 +46,14 @@ Then start a container using the published image:
 podman run -d --name somafm-song-history-api --network=host docker.io/alecigne/somafm-song-history:v0.6.2 "api"
 ```
 
-And visit:
+Open the web UI:
+
+- `http://localhost:7070/`
+
+The JSON endpoints are also available:
 
 - `http://localhost:7070/broadcasts` to get a paginated list of broadcasts from the DB.
+- `http://localhost:7070/songs` to get a paginated list of songs from the DB.
 - `http://localhost:7070/broadcasts/recent?channel=dronezone` for recent broadcasts from Drone Zone.
 
 In these manual tests, note that `--network=host` is required to access the database.

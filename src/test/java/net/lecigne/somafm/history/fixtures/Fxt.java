@@ -3,9 +3,9 @@ package net.lecigne.somafm.history.fixtures;
 import net.lecigne.somafm.recentlib.Artist;
 import net.lecigne.somafm.recentlib.Song;
 
-public final class TestFixtures {
+public final class Fxt {
 
-  public static Song dirkSerriesSongFixture() {
+  public static Song dirkSerriesSix() {
     return Song.builder()
         .artist(Artist.builder().name("Dirk Serries' Microphonics").build())
         .title("VI")
@@ -13,12 +13,19 @@ public final class TestFixtures {
         .build();
   }
 
-  public static Song igneousFlameSongFixture() {
+  public static Song igneousFlameIncandescentArc() {
     return Song.builder()
         .artist(Artist.builder().name("Igneous Flame").build())
         .title("Incandescent Arc")
         .album("Lapiz")
         .build();
+  }
+
+  public static Song igneousFlameRegenerativeShifts() {
+    return Song.builder()
+        .artist(Artist.builder().name("Igneous Flame").build())
+        .title("Regenerative Shifts")
+        .album("Lapiz").build();
   }
 
   public static Song breakSongFixture() {
@@ -27,7 +34,7 @@ public final class TestFixtures {
         .build();
   }
 
-  private TestFixtures() {
+  private Fxt() {
     throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
   }
 

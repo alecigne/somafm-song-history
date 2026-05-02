@@ -1,8 +1,8 @@
 package net.lecigne.somafm.history.integration;
 
-import static net.lecigne.somafm.history.fixtures.TestFixtures.breakSongFixture;
-import static net.lecigne.somafm.history.fixtures.TestFixtures.dirkSerriesSongFixture;
-import static net.lecigne.somafm.history.fixtures.TestFixtures.igneousFlameSongFixture;
+import static net.lecigne.somafm.history.fixtures.Fxt.breakSongFixture;
+import static net.lecigne.somafm.history.fixtures.Fxt.dirkSerriesSix;
+import static net.lecigne.somafm.history.fixtures.Fxt.igneousFlameIncandescentArc;
 import static net.lecigne.somafm.recentlib.PredefinedChannel.DRONE_ZONE;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,7 +17,8 @@ import net.lecigne.somafm.history.adapters.out.SqlBroadcastRepository;
 import net.lecigne.somafm.history.application.ports.in.RunCommandUseCase;
 import net.lecigne.somafm.history.application.ports.out.BroadcastRepository;
 import net.lecigne.somafm.history.application.ports.out.SomaFmRepository;
-import net.lecigne.somafm.history.application.services.SomaFmSongHistoryService;
+import net.lecigne.somafm.history.application.services.SomaFmCommandDispatcher;
+import net.lecigne.somafm.history.application.services.SomaFmRecentService;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig;
 import net.lecigne.somafm.history.fixtures.TestRepository;
 import net.lecigne.somafm.recentlib.Broadcast;
@@ -68,10 +69,11 @@ class SomaFmSongHistoryIT {
     var somaFmConfig = new SomaFmConfig();
     somaFmConfig.setTimezone("Europe/Paris");
     SomaFmRepository somaFmRepository = HtmlSomaFmRepository.init(somaFm);
-    BroadcastRepository repository = SqlBroadcastRepository.init(hikariDataSource);
-    RunCommandUseCase init = SomaFmSongHistoryService.init(repository, somaFmRepository);
+    BroadcastRepository broadcastRepo = SqlBroadcastRepository.init(hikariDataSource);
+    SomaFmRecentService recentService = SomaFmRecentService.init(somaFmRepository, broadcastRepo);
+    RunCommandUseCase commandDispatcher = SomaFmCommandDispatcher.init(recentService, recentService);
     testRepo = new TestRepository(hikariDataSource);
-    cli = CLI.init(init, somaFmConfig);
+    cli = CLI.init(commandDispatcher, somaFmConfig);
   }
 
   @AfterEach
@@ -89,18 +91,18 @@ class SomaFmSongHistoryIT {
             Broadcast.builder()
                 .time(Instant.parse("2021-01-01T13:00:00.00Z"))
                 .channel(DRONE_ZONE)
-                .song(dirkSerriesSongFixture())
+                .song(dirkSerriesSix())
                 .build(),
             // Same song played twice
             Broadcast.builder()
                 .time(Instant.parse("2021-01-01T13:02:00.00Z"))
                 .channel(DRONE_ZONE)
-                .song(dirkSerriesSongFixture())
+                .song(dirkSerriesSix())
                 .build(),
             Broadcast.builder()
                 .time(Instant.parse("2021-01-01T13:15:00.00Z"))
                 .channel(DRONE_ZONE)
-                .song(igneousFlameSongFixture())
+                .song(igneousFlameIncandescentArc())
                 .build(),
             Broadcast.builder()
                 .time(Instant.parse("2021-01-01T13:20:00.00Z"))

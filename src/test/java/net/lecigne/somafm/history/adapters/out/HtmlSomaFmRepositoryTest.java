@@ -1,6 +1,6 @@
 package net.lecigne.somafm.history.adapters.out;
 
-import static net.lecigne.somafm.history.fixtures.TestFixtures.dirkSerriesSongFixture;
+import static net.lecigne.somafm.history.fixtures.Fxt.dirkSerriesSix;
 import static net.lecigne.somafm.recentlib.PredefinedChannel.DRONE_ZONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -26,7 +26,7 @@ class HtmlSomaFmRepositoryTest {
     var broadcast = Broadcast.builder()
         .time(Instant.parse("2021-01-01T11:36:43.00Z"))
         .channel(channel)
-        .song(dirkSerriesSongFixture())
+        .song(dirkSerriesSix())
         .build();
 
     given(somaFm.fetchRecent(DRONE_ZONE)).willReturn(List.of(broadcast));
