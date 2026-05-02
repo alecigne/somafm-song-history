@@ -9,10 +9,12 @@ import io.javalin.http.Context;
 import java.util.List;
 import net.lecigne.somafm.history.application.ports.in.FetchRecentBroadcastsUseCase;
 import net.lecigne.somafm.history.application.ports.in.GetBroadcastsUseCase;
+import net.lecigne.somafm.history.application.ports.in.GetSongsUseCase;
 import net.lecigne.somafm.history.domain.model.Page;
 import net.lecigne.somafm.recentlib.Broadcast;
 import net.lecigne.somafm.recentlib.Channel;
 import net.lecigne.somafm.recentlib.PredefinedChannel;
+import net.lecigne.somafm.recentlib.Song;
 
 public class JavalinRestController {
 
@@ -20,13 +22,16 @@ public class JavalinRestController {
   private static final int DEFAULT_SIZE = 50;
 
   private final GetBroadcastsUseCase getBroadcastsUseCase;
+  private final GetSongsUseCase getSongsUseCase;
   private final FetchRecentBroadcastsUseCase fetchRecentBroadcastsUseCase;
 
   JavalinRestController(
       GetBroadcastsUseCase getBroadcastsUseCase,
+      GetSongsUseCase getSongsUseCase,
       FetchRecentBroadcastsUseCase fetchRecentBroadcastsUseCase
   ) {
     this.getBroadcastsUseCase = getBroadcastsUseCase;
+    this.getSongsUseCase = getSongsUseCase;
     this.fetchRecentBroadcastsUseCase = fetchRecentBroadcastsUseCase;
   }
 
@@ -36,6 +41,17 @@ public class JavalinRestController {
     try {
       Page<Broadcast> broadcastsPage = getBroadcastsUseCase.getBroadcasts(page, size);
       ctx.json(BroadcastPageResponseDto.from(broadcastsPage));
+    } catch (IllegalArgumentException e) {
+      throw new BadRequestResponse(e.getMessage());
+    }
+  }
+
+  private void getSongs(Context ctx) {
+    int page = parseQueryInt(ctx, "page", DEFAULT_PAGE);
+    int size = parseQueryInt(ctx, "size", DEFAULT_SIZE);
+    try {
+      Page<Song> songsPage = getSongsUseCase.getSongs(page, size);
+      ctx.json(SongPageResponseDto.from(songsPage));
     } catch (IllegalArgumentException e) {
       throw new BadRequestResponse(e.getMessage());
     }
@@ -67,16 +83,19 @@ public class JavalinRestController {
   }
 
   public EndpointGroup routes() {
-    return () -> path("broadcasts", () -> {
-      get(this::getBroadcasts);
-      get("recent", this::fetchRecentBroadcasts);
-    });
+    return () -> {
+      path("broadcasts", () -> {
+        get(this::getBroadcasts);
+        get("recent", this::fetchRecentBroadcasts);
+      });
+      path("songs", () -> get(this::getSongs));
+    };
   }
 
   public static JavalinRestController init(
-      GetBroadcastsUseCase getBroadcastsUseCase,
+      GetBroadcastsUseCase getBroadcastsUseCase, GetSongsUseCase getSongsUseCase,
       FetchRecentBroadcastsUseCase fetchRecentBroadcastsUseCase) {
-    return new JavalinRestController(getBroadcastsUseCase, fetchRecentBroadcastsUseCase);
+    return new JavalinRestController(getBroadcastsUseCase, getSongsUseCase, fetchRecentBroadcastsUseCase);
   }
 
 }
