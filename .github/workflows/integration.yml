@@ -13,6 +13,7 @@ on:
       - develop
     paths-ignore:
       - "**.md"
+      - ".github/dependabot.yml"
 
 jobs:
   pipeline:
