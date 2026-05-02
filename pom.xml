@@ -6,7 +6,7 @@
 
   <groupId>net.lecigne</groupId>
   <artifactId>somafm-song-history</artifactId>
-  <version>0.6.1</version>
+  <version>0.6.2</version>
 
   <properties>
     <java.version>21</java.version>
@@ -15,9 +15,9 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.testing.version>3.5.5</maven.testing.version>
-    <flyway.version>12.4.0</flyway.version>
+    <flyway.version>12.5.0</flyway.version>
     <maven.compiler.version>3.15.0</maven.compiler.version>
-    <lombok.version>1.18.44</lombok.version>
+    <lombok.version>1.18.46</lombok.version>
   </properties>
 
   <repositories>
@@ -32,7 +32,7 @@
       <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>testcontainers-bom</artifactId>
-        <version>2.0.4</version>
+        <version>2.0.5</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -57,13 +57,13 @@
     <dependency>
       <groupId>io.javalin</groupId>
       <artifactId>javalin</artifactId>
-      <version>7.1.0</version>
+      <version>7.2.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-jsr310</artifactId>
-      <version>2.21.2</version>
+      <version>2.21.3</version>
     </dependency>
     <!-- Persistence -->
     <dependency>
@@ -91,7 +91,7 @@
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.7.10</version>
+      <version>42.7.11</version>
     </dependency>
     <!-- Other -->
     <dependency>
@@ -102,7 +102,7 @@
     <dependency>
       <groupId>com.typesafe</groupId>
       <artifactId>config</artifactId>
-      <version>1.4.6</version>
+      <version>1.4.7</version>
     </dependency>
     <!-- Logging -->
     <dependency>
@@ -130,7 +130,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>33.5.0-jre</version>
+      <version>33.6.0-jre</version>
       <scope>test</scope>
     </dependency>
     <dependency>
