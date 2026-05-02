@@ -4,7 +4,7 @@
 
 `somafm-song-history` is a Java application that retrieves [SomaFM][soma]'s recently played songs.
 
-Current stable version is v0.6.1.
+Current stable version is v0.6.2.
 
 This project is developed for my personal use, but I'll be glad to help if you encounter any
 [issue][issues].
@@ -40,7 +40,7 @@ in [the default config][config]. The application will setup the database on star
 Then start a container using the published image:
 
 ``` shell
-podman run -d --name somafm-song-history-api --network=host docker.io/alecigne/somafm-song-history:v0.6.1 "api"
+podman run -d --name somafm-song-history-api --network=host docker.io/alecigne/somafm-song-history:v0.6.2 "api"
 ```
 
 And visit:
@@ -57,7 +57,7 @@ This mode prints recently played songs in the console for a given channel.
 To run the application in `display mode` with [the default config][config]:
 
 ``` shell
-podman run --rm -it docker.io/alecigne/somafm-song-history:v0.6.1 "display" "Drone Zone"
+podman run --rm -it docker.io/alecigne/somafm-song-history:v0.6.2 "display" "Drone Zone"
 ```
 
 ## Save mode
@@ -66,7 +66,7 @@ This mode saves recently played songs to a database for a given channel, then ex
 the same database as in `api` mode. Once it is up, run:
 
 ``` shell
-podman run --rm -it --network=host docker.io/alecigne/somafm-song-history:v0.6.1 "save" "Drone Zone"
+podman run --rm -it --network=host docker.io/alecigne/somafm-song-history:v0.6.2 "save" "Drone Zone"
 ```
 
 ## Using a custom config
@@ -77,7 +77,7 @@ If you need your own config, you can prepare a file in [HOCON][hocon] format. Ch
 Then pass the config to Podman with your chosen mode:
 
 ``` shell
-podman run -d --network=host -v /path/to/application.conf:/application.conf docker.io/alecigne/somafm-song-history:v0.6.1 "api"
+podman run -d --network=host -v /path/to/application.conf:/application.conf docker.io/alecigne/somafm-song-history:v0.6.2 "api"
 ```
 
 ## Cleaning up after your tests
