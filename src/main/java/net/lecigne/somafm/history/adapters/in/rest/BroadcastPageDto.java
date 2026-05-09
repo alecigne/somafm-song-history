@@ -1,8 +1,8 @@
 package net.lecigne.somafm.history.adapters.in.rest;
 
 import java.util.List;
-import net.lecigne.somafm.history.domain.model.Page;
-import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.history.application.model.Page;
+import net.lecigne.somafm.history.domain.model.Broadcast;
 
 record BroadcastPageDto(
     int page,

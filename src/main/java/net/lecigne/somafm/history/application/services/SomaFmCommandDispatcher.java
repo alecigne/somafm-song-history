@@ -4,8 +4,8 @@ import java.util.List;
 import net.lecigne.somafm.history.application.ports.in.FetchRecentBroadcastsUseCase;
 import net.lecigne.somafm.history.application.ports.in.RunCommandUseCase;
 import net.lecigne.somafm.history.application.ports.in.SaveRecentBroadcastsUseCase;
-import net.lecigne.somafm.history.domain.model.SomaFmCommand;
-import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.history.application.model.SomaFmCommand;
+import net.lecigne.somafm.history.domain.model.Broadcast;
 
 public class SomaFmCommandDispatcher implements RunCommandUseCase {
 

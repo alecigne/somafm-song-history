@@ -4,11 +4,13 @@ const state = {
   size: 50,
   totalPages: 0,
   totalElements: 0,
-  loading: false
+  loading: false,
+  previousList: null
 };
 
 const viewButtons = [...document.querySelectorAll(".view-button")];
 const summary = document.querySelector("#summary");
+const toolbar = document.querySelector(".toolbar");
 const message = document.querySelector("#message");
 const firstPage = document.querySelector("#first-page");
 const previousPage = document.querySelector("#previous-page");
@@ -19,15 +21,13 @@ const pageJumpForm = document.querySelector("#page-jump-form");
 const pageJump = document.querySelector("#page-jump");
 const goPage = document.querySelector("#go-page");
 const pageSize = document.querySelector("#page-size");
-const tableHead = document.querySelector("#table-head");
-const tableBody = document.querySelector("#table-body");
+const tableShell = document.querySelector(".table-shell");
+let tableHead = document.querySelector("#table-head");
+let tableBody = document.querySelector("#table-body");
 
 viewButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    state.view = button.dataset.view;
-    state.page = 1;
-    renderShell();
-    void loadPage();
+    showList(button.dataset.view);
   });
 });
 
@@ -58,8 +58,44 @@ pageSize.addEventListener("change", () => {
   void loadPage();
 });
 
-renderShell();
-await loadPage();
+window.addEventListener("hashchange", () => {
+  void route();
+});
+
+await route();
+
+async function route() {
+  const songId = songIdFromHash();
+  if (songId !== null) {
+    await loadSong(songId);
+    return;
+  }
+
+  if (state.view === "song") {
+    state.view = "broadcasts";
+    state.page = 1;
+  }
+  renderShell();
+  await loadPage();
+}
+
+function showList(view) {
+  state.view = view;
+  state.page = 1;
+  state.totalPages = 0;
+  state.totalElements = 0;
+  state.previousList = null;
+  if (window.location.hash) {
+    history.pushState(null, "", window.location.pathname + window.location.search);
+  }
+  renderShell();
+  void loadPage();
+}
+
+function songIdFromHash() {
+  const match = window.location.hash.match(/^#\/songs\/(\d+)$/);
+  return match ? Number(match[1]) : null;
+}
 
 async function loadPage() {
   state.loading = true;
@@ -80,6 +116,31 @@ async function loadPage() {
     renderPage(page);
   } catch (error) {
     renderError(error);
+  } finally {
+    state.loading = false;
+    renderControls();
+  }
+}
+
+async function loadSong(songId) {
+  state.loading = true;
+  state.previousList ??= { view: state.view === "song" ? "broadcasts" : state.view, page: state.page };
+  state.view = "song";
+  renderSongLoading();
+
+  try {
+    const response = await fetch(`/songs/${songId}`, {
+      headers: { Accept: "application/json" }
+    });
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(body || `Request failed with status ${response.status}`);
+    }
+
+    const song = await response.json();
+    renderSong(song);
+  } catch (error) {
+    renderSongError(error);
   } finally {
     state.loading = false;
     renderControls();
@@ -109,9 +170,12 @@ function renderShell() {
   viewButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.view === state.view);
   });
+  toolbar.hidden = false;
+  restoreListTable();
+  clearTableCaption();
   tableHead.innerHTML = state.view === "broadcasts"
-    ? "<tr><th class=\"time-column\">Time</th><th class=\"channel-column\">Channel</th><th>Artist</th><th>Title</th><th>Album</th></tr>"
-    : "<tr><th>Artist</th><th>Title</th><th>Album</th></tr>";
+    ? "<tr><th class=\"time-column\">Time</th><th class=\"channel-column\">Channel</th><th>Artist</th><th>Title</th><th>Album</th><th class=\"action-column\"><span class=\"visually-hidden\">Actions</span></th></tr>"
+    : "<tr><th>Artist</th><th>Title</th><th>Album</th><th class=\"action-column\"><span class=\"visually-hidden\">Actions</span></th></tr>";
   tableBody.innerHTML = "";
   message.textContent = "";
   message.classList.remove("is-error");
@@ -121,6 +185,21 @@ function renderShell() {
 function renderLoading() {
   message.textContent = `Loading ${state.view}...`;
   message.classList.remove("is-error");
+  tableBody.innerHTML = "";
+  renderControls();
+}
+
+function renderSongLoading() {
+  viewButtons.forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.view === "songs");
+  });
+  toolbar.hidden = true;
+  summary.textContent = "Loading song...";
+  message.textContent = "Loading song...";
+  message.classList.remove("is-error");
+  restoreListTable();
+  clearTableCaption();
+  tableHead.innerHTML = "<tr><th class=\"time-column\">Time</th><th class=\"channel-column\">Channel</th></tr>";
   tableBody.innerHTML = "";
   renderControls();
 }
@@ -139,6 +218,54 @@ function renderPage(page) {
   renderControls();
 }
 
+function renderSong(song) {
+  summary.textContent = `${song.broadcasts?.length || 0} broadcasts for ${song.title || "song"}`;
+  message.classList.remove("is-error");
+  message.innerHTML = `<button type="button" class="back-button" id="back-to-list">Back</button>`;
+  document.querySelector("#back-to-list").addEventListener("click", backToList);
+  const broadcasts = song.broadcasts || [];
+  clearTableCaption();
+  tableShell.classList.add("is-detail");
+  tableShell.innerHTML = `<div class="table-card">
+    <table>
+      <caption class="table-caption">Song details</caption>
+      <thead>
+        <tr><th>Artist</th><th>Title</th><th>Album</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="text-column">${escapeHtml(song.artist)}</td>
+          <td class="text-column">${escapeHtml(song.title)}</td>
+          <td class="text-column muted">${escapeHtml(song.album)}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="table-card">
+    <table>
+      <caption class="table-caption">Broadcasts (${broadcasts.length})</caption>
+      <thead>
+        <tr><th class="time-column">Time</th><th class="channel-column">Channel</th></tr>
+      </thead>
+      <tbody>
+        ${broadcasts.length === 0
+          ? "<tr><td colspan=\"2\" class=\"muted\">No broadcasts found.</td></tr>"
+          : broadcasts.map(songBroadcastRow).join("")}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function renderSongError(error) {
+  summary.textContent = "Could not load song.";
+  message.textContent = error.message;
+  message.classList.add("is-error");
+  restoreListTable();
+  clearTableCaption();
+  tableHead.innerHTML = "<tr><th class=\"time-column\">Time</th><th class=\"channel-column\">Channel</th></tr>";
+  tableBody.innerHTML = "";
+}
+
 function renderError(error) {
   state.totalPages = 0;
   state.totalElements = 0;
@@ -149,6 +276,11 @@ function renderError(error) {
 }
 
 function renderControls() {
+  if (state.view === "song") {
+    toolbar.hidden = true;
+    return;
+  }
+  toolbar.hidden = false;
   const totalPages = state.totalPages;
   const atFirstPage = state.page <= 1;
   const atLastPage = totalPages === 0 || state.page >= totalPages;
@@ -176,6 +308,7 @@ function broadcastRow(item) {
     <td class="text-column">${escapeHtml(item.song?.artist)}</td>
     <td class="text-column">${escapeHtml(item.song?.title)}</td>
     <td class="text-column muted">${escapeHtml(item.song?.album)}</td>
+    <td class="action-column">${songAction(item.song?.id)}</td>
   </tr>`;
 }
 
@@ -184,7 +317,45 @@ function songRow(item) {
     <td class="text-column">${escapeHtml(item.artist)}</td>
     <td class="text-column">${escapeHtml(item.title)}</td>
     <td class="text-column muted">${escapeHtml(item.album)}</td>
+    <td class="action-column">${songAction(item.id)}</td>
   </tr>`;
+}
+
+function songBroadcastRow(item) {
+  return `<tr>
+    <td class="time-column">${escapeHtml(formatBroadcastTime(item.time))}</td>
+    <td class="channel-column">${escapeHtml(item.channel)}</td>
+  </tr>`;
+}
+
+function songAction(songId) {
+  if (songId === null || songId === undefined) return "";
+  return `<a class="icon-link" href="#/songs/${encodeURIComponent(songId)}" aria-label="View song" title="View song">›</a>`;
+}
+
+function backToList() {
+  const previousList = state.previousList || { view: "broadcasts", page: 1 };
+  state.previousList = null;
+  state.view = previousList.view;
+  state.page = previousList.page;
+  history.pushState(null, "", window.location.pathname + window.location.search);
+  renderShell();
+  void loadPage();
+}
+
+function clearTableCaption() {
+  document.querySelector(".table-caption")?.remove();
+}
+
+function restoreListTable() {
+  tableShell.classList.remove("is-detail");
+  if (document.querySelector("#table-head") && document.querySelector("#table-body")) return;
+  tableShell.innerHTML = `<table>
+    <thead id="table-head"></thead>
+    <tbody id="table-body"></tbody>
+  </table>`;
+  tableHead = document.querySelector("#table-head");
+  tableBody = document.querySelector("#table-body");
 }
 
 function formatBroadcastTime(value) {

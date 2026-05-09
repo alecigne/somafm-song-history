@@ -1,4 +1,4 @@
-package net.lecigne.somafm.history.domain.model;
+package net.lecigne.somafm.history.application.model;
 
 import java.util.List;
 import lombok.Getter;

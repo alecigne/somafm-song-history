@@ -1,4 +1,4 @@
-package net.lecigne.somafm.history.domain.services;
+package net.lecigne.somafm.history.application.services;
 
 public class PaginationService {
 

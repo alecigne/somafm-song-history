@@ -7,7 +7,7 @@ import net.lecigne.somafm.history.application.ports.in.FetchRecentBroadcastsUseC
 import net.lecigne.somafm.history.application.ports.in.SaveRecentBroadcastsUseCase;
 import net.lecigne.somafm.history.application.ports.out.BroadcastRepository;
 import net.lecigne.somafm.history.application.ports.out.SomaFmRepository;
-import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.history.domain.model.Broadcast;
 import net.lecigne.somafm.recentlib.Channel;
 
 @Slf4j

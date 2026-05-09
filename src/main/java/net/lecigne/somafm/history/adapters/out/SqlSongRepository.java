@@ -8,13 +8,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import net.lecigne.somafm.history.application.ports.out.SongRepository;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.DbConfig;
-import net.lecigne.somafm.recentlib.Artist;
-import net.lecigne.somafm.recentlib.Song;
+import net.lecigne.somafm.history.domain.model.Song;
+import net.lecigne.somafm.history.domain.model.SongBroadcast;
+import net.lecigne.somafm.history.domain.model.SongDetails;
+import net.lecigne.somafm.recentlib.PredefinedChannel;
 
 @Slf4j
 public class SqlSongRepository implements SongRepository {
@@ -31,9 +34,7 @@ public class SqlSongRepository implements SongRepository {
     try (Connection connection = dataSource.getConnection();
         PreparedStatement statement = connection.prepareStatement(sql);
         ResultSet resultSet = statement.executeQuery()) {
-      if (resultSet.next()) {
-        return resultSet.getLong(1);
-      }
+      if (resultSet.next()) return resultSet.getLong(1);
       return 0;
     } catch (SQLException e) {
       log.error("Error while counting songs", e);
@@ -54,9 +55,9 @@ public class SqlSongRepository implements SongRepository {
         PreparedStatement statement = connection.prepareStatement(sql)) {
       statement.setInt(1, size);
       statement.setInt(2, offset);
-      try (ResultSet resultSet = statement.executeQuery()) {
-        while (resultSet.next()) {
-          songs.add(mapSong(resultSet));
+      try (ResultSet rs = statement.executeQuery()) {
+        while (rs.next()) {
+          songs.add(mapSong(rs));
         }
       }
       return songs;
@@ -66,14 +67,50 @@ public class SqlSongRepository implements SongRepository {
     }
   }
 
-  private Song mapSong(ResultSet resultSet) throws SQLException {
-    return Song.builder()
-        .artist(Artist.builder()
-            .name(resultSet.getString("artist"))
-            .build())
-        .title(resultSet.getString("title"))
-        .album(resultSet.getString("album"))
-        .build();
+  @Override
+  public Optional<SongDetails> getSong(long id) {
+    var sql = """
+        SELECT s.id, s.artist, s.title, s.album, b.utc_time, b.channel, b.id AS broadcast_id
+        FROM songs s
+        LEFT JOIN broadcasts b ON b.song_id = s.id
+        WHERE s.id = ?
+        ORDER BY b.utc_time DESC, b.id DESC;
+        """;
+    try (Connection connection = dataSource.getConnection();
+        PreparedStatement statement = connection.prepareStatement(sql)) {
+      statement.setLong(1, id);
+      try (ResultSet rs = statement.executeQuery()) {
+        Song song = null;
+        List<SongBroadcast> broadcasts = new ArrayList<>();
+        while (rs.next()) {
+          if (song == null) {
+            song = mapSong(rs);
+          }
+          if (rs.getObject("broadcast_id") != null) {
+            String channelName = rs.getString("channel");
+            var channel = PredefinedChannel
+                .getByPublicName(channelName)
+                .orElseThrow(() -> new IllegalStateException("Unknown channel in database: " + channelName));
+            broadcasts.add(new SongBroadcast(rs.getTimestamp("utc_time").toInstant(), channel));
+          }
+        }
+        if (song == null) {
+          return Optional.empty();
+        }
+        return Optional.of(new SongDetails(song, broadcasts));
+      }
+    } catch (SQLException e) {
+      log.error("Error while reading song {}", id, e);
+      throw new IllegalStateException("Could not read song from database", e);
+    }
+  }
+
+  private Song mapSong(ResultSet rs) throws SQLException {
+    return new Song(
+        rs.getLong("id"),
+        rs.getString("artist"),
+        rs.getString("title"),
+        rs.getString("album"));
   }
 
   public static SongRepository init(SomaFmConfig config) {
