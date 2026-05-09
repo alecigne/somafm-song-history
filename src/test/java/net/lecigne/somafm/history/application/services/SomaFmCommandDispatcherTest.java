@@ -1,6 +1,6 @@
 package net.lecigne.somafm.history.application.services;
 
-import static net.lecigne.somafm.history.fixtures.Fxt.dirkSerriesSix;
+import static net.lecigne.somafm.history.fixtures.Fixtures.dirkSerriesSix;
 import static net.lecigne.somafm.recentlib.PredefinedChannel.DRONE_ZONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -9,9 +9,9 @@ import java.time.Instant;
 import java.util.List;
 import net.lecigne.somafm.history.application.ports.in.FetchRecentBroadcastsUseCase;
 import net.lecigne.somafm.history.application.ports.in.SaveRecentBroadcastsUseCase;
-import net.lecigne.somafm.history.domain.model.Mode;
-import net.lecigne.somafm.history.domain.model.SomaFmCommand;
-import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.history.application.model.Mode;
+import net.lecigne.somafm.history.application.model.SomaFmCommand;
+import net.lecigne.somafm.history.domain.model.Broadcast;
 import net.lecigne.somafm.recentlib.Channel;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.AfterEach;

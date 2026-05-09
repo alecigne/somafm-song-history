@@ -2,7 +2,8 @@ package net.lecigne.somafm.history.adapters.out;
 
 import java.util.List;
 import net.lecigne.somafm.history.application.ports.out.SomaFmRepository;
-import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.history.domain.model.Broadcast;
+import net.lecigne.somafm.history.domain.model.Song;
 import net.lecigne.somafm.recentlib.Channel;
 import net.lecigne.somafm.recentlib.SomaFm;
 
@@ -25,7 +26,18 @@ public class HtmlSomaFmRepository implements SomaFmRepository {
    * Fetch recent broadcasts from SomaFM.
    */
   public List<Broadcast> fetchRecentBroadcasts(Channel channel) {
-    return somaFmClient.fetchRecent(channel);
+    List<net.lecigne.somafm.recentlib.Broadcast> broadcastDtos = somaFmClient.fetchRecent(channel);
+    return broadcastDtos.stream()
+        .map(broadcastDto -> Broadcast.builder()
+            .time(broadcastDto.time())
+            .channel(broadcastDto.channel())
+            .song(Song.builder()
+                .artist(broadcastDto.song().artist() == null ? null : broadcastDto.song().artist().name())
+                .title(broadcastDto.song().title())
+                .album(broadcastDto.song().album())
+                .build())
+            .build())
+        .toList();
   }
 
   public static SomaFmRepository init(SomaFm somaFmClient) {

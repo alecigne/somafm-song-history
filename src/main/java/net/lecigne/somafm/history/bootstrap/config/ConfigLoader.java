@@ -6,7 +6,7 @@ import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.ApiConfig;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.DbConfig;
-import net.lecigne.somafm.history.domain.model.Mode;
+import net.lecigne.somafm.history.application.model.Mode;
 
 @Slf4j
 public final class ConfigLoader {

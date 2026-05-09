@@ -1,8 +1,8 @@
 package net.lecigne.somafm.history.application.services;
 
-import static net.lecigne.somafm.history.fixtures.Fxt.breakSongFixture;
-import static net.lecigne.somafm.history.fixtures.Fxt.dirkSerriesSix;
-import static net.lecigne.somafm.history.fixtures.Fxt.igneousFlameIncandescentArc;
+import static net.lecigne.somafm.history.fixtures.Fixtures.breakSongFixture;
+import static net.lecigne.somafm.history.fixtures.Fixtures.dirkSerriesSix;
+import static net.lecigne.somafm.history.fixtures.Fixtures.igneousFlameIncandescentArc;
 import static net.lecigne.somafm.recentlib.PredefinedChannel.DRONE_ZONE;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -11,9 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import net.lecigne.somafm.history.application.ports.out.BroadcastRepository;
 import net.lecigne.somafm.history.application.ports.out.SomaFmRepository;
-import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.history.domain.model.Broadcast;
+import net.lecigne.somafm.history.domain.model.Song;
 import net.lecigne.somafm.recentlib.Channel;
-import net.lecigne.somafm.recentlib.Song;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

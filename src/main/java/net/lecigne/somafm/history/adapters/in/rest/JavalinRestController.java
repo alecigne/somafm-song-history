@@ -6,15 +6,18 @@ import static io.javalin.apibuilder.ApiBuilder.path;
 import io.javalin.apibuilder.EndpointGroup;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
+import io.javalin.http.NotFoundResponse;
 import java.util.List;
+import net.lecigne.somafm.history.application.model.Page;
 import net.lecigne.somafm.history.application.ports.in.FetchRecentBroadcastsUseCase;
 import net.lecigne.somafm.history.application.ports.in.GetBroadcastsUseCase;
+import net.lecigne.somafm.history.application.ports.in.GetSongDetailsUseCase;
 import net.lecigne.somafm.history.application.ports.in.GetSongsUseCase;
-import net.lecigne.somafm.history.domain.model.Page;
-import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.history.domain.model.Broadcast;
+import net.lecigne.somafm.history.domain.model.Song;
+import net.lecigne.somafm.history.domain.model.SongDetails;
 import net.lecigne.somafm.recentlib.Channel;
 import net.lecigne.somafm.recentlib.PredefinedChannel;
-import net.lecigne.somafm.recentlib.Song;
 
 public class JavalinRestController {
 
@@ -23,15 +26,18 @@ public class JavalinRestController {
 
   private final GetBroadcastsUseCase getBroadcastsUseCase;
   private final GetSongsUseCase getSongsUseCase;
+  private final GetSongDetailsUseCase getSongDetailsUseCase;
   private final FetchRecentBroadcastsUseCase fetchRecentBroadcastsUseCase;
 
   JavalinRestController(
       GetBroadcastsUseCase getBroadcastsUseCase,
       GetSongsUseCase getSongsUseCase,
+      GetSongDetailsUseCase getSongDetailsUseCase,
       FetchRecentBroadcastsUseCase fetchRecentBroadcastsUseCase
   ) {
     this.getBroadcastsUseCase = getBroadcastsUseCase;
     this.getSongsUseCase = getSongsUseCase;
+    this.getSongDetailsUseCase = getSongDetailsUseCase;
     this.fetchRecentBroadcastsUseCase = fetchRecentBroadcastsUseCase;
   }
 
@@ -55,6 +61,14 @@ public class JavalinRestController {
     } catch (IllegalArgumentException e) {
       throw new BadRequestResponse(e.getMessage());
     }
+  }
+
+  private void getSongDetails(Context ctx) {
+    long id = parseId(ctx, "id");
+    SongDetails songDetails = getSongDetailsUseCase
+        .getSongDetails(id)
+        .orElseThrow(() -> new NotFoundResponse("Song with ID #" + id + " not found"));
+    ctx.json(SongDetailsDto.from(songDetails));
   }
 
   private void fetchRecentBroadcasts(Context ctx) {
@@ -82,21 +96,35 @@ public class JavalinRestController {
     }
   }
 
+  @SuppressWarnings("SameParameterValue") // name must stay dynamic
+  private static long parseId(Context ctx, String name) {
+    String value = ctx.pathParam(name);
+    try {
+      return Long.parseLong(value);
+    } catch (NumberFormatException e) {
+      throw new BadRequestResponse("Path parameter '" + name + "' must be an integer");
+    }
+  }
+
   public EndpointGroup routes() {
     return () -> {
       path("broadcasts", () -> {
         get(this::getBroadcasts);
         get("recent", this::fetchRecentBroadcasts);
       });
-      path("songs", () -> get(this::getSongs));
+      path("songs", () -> {
+        get(this::getSongs);
+        get("{id}", this::getSongDetails);
+      });
     };
   }
 
   public static JavalinRestController init(
       GetBroadcastsUseCase getBroadcastsUseCase,
       GetSongsUseCase getSongsUseCase,
+      GetSongDetailsUseCase getSongDetailsUseCase,
       FetchRecentBroadcastsUseCase fetchRecentBroadcastsUseCase) {
-    return new JavalinRestController(getBroadcastsUseCase, getSongsUseCase, fetchRecentBroadcastsUseCase);
+    return new JavalinRestController(getBroadcastsUseCase, getSongsUseCase, getSongDetailsUseCase, fetchRecentBroadcastsUseCase);
   }
 
 }

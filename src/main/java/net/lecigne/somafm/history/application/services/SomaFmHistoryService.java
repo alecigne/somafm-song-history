@@ -1,18 +1,20 @@
 package net.lecigne.somafm.history.application.services;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import net.lecigne.somafm.history.application.ports.in.GetBroadcastsUseCase;
+import net.lecigne.somafm.history.application.ports.in.GetSongDetailsUseCase;
 import net.lecigne.somafm.history.application.ports.in.GetSongsUseCase;
 import net.lecigne.somafm.history.application.ports.out.BroadcastRepository;
 import net.lecigne.somafm.history.application.ports.out.SongRepository;
-import net.lecigne.somafm.history.domain.model.Page;
-import net.lecigne.somafm.history.domain.services.PaginationService;
-import net.lecigne.somafm.recentlib.Broadcast;
-import net.lecigne.somafm.recentlib.Song;
+import net.lecigne.somafm.history.application.model.Page;
+import net.lecigne.somafm.history.domain.model.Broadcast;
+import net.lecigne.somafm.history.domain.model.Song;
+import net.lecigne.somafm.history.domain.model.SongDetails;
 
-public class SomaFmHistoryService implements GetBroadcastsUseCase, GetSongsUseCase {
+public class SomaFmHistoryService implements GetBroadcastsUseCase, GetSongsUseCase, GetSongDetailsUseCase {
 
   private final BroadcastRepository broadcastRepo;
   private final SongRepository songRepo;
@@ -39,6 +41,11 @@ public class SomaFmHistoryService implements GetBroadcastsUseCase, GetSongsUseCa
   @Override
   public Page<Song> getSongs(int page, int size) {
     return getPage(songRepo::countSongs, () -> songRepo.getSongs(page, size), page, size);
+  }
+
+  @Override
+  public Optional<SongDetails> getSongDetails(long id) {
+    return songRepo.getSong(id);
   }
 
   private <T> Page<T> getPage(LongSupplier counter, Supplier<List<T>> supplier, int page, int size) {

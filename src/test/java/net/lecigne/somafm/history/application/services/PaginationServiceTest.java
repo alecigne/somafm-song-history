@@ -1,10 +1,9 @@
-package net.lecigne.somafm.history.domain;
+package net.lecigne.somafm.history.application.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import net.lecigne.somafm.history.domain.services.PaginationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

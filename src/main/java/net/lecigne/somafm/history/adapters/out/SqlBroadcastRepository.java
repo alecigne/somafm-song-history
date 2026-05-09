@@ -14,10 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.lecigne.somafm.history.application.ports.out.BroadcastRepository;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.DbConfig;
-import net.lecigne.somafm.recentlib.Artist;
-import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.history.domain.model.Broadcast;
+import net.lecigne.somafm.history.domain.model.Song;
 import net.lecigne.somafm.recentlib.PredefinedChannel;
-import net.lecigne.somafm.recentlib.Song;
 
 @Slf4j
 public class SqlBroadcastRepository implements BroadcastRepository {
@@ -33,10 +32,8 @@ public class SqlBroadcastRepository implements BroadcastRepository {
     var sql = "SELECT COUNT(*) FROM broadcasts";
     try (Connection connection = dataSource.getConnection();
         PreparedStatement statement = connection.prepareStatement(sql);
-        ResultSet resultSet = statement.executeQuery()) {
-      if (resultSet.next()) {
-        return resultSet.getLong(1);
-      }
+        ResultSet rs = statement.executeQuery()) {
+      if (rs.next()) return rs.getLong(1);
       return 0;
     } catch (SQLException e) {
       log.error("Error while counting broadcasts", e);
@@ -47,10 +44,10 @@ public class SqlBroadcastRepository implements BroadcastRepository {
   @Override
   public List<Broadcast> getBroadcasts(int page, int size) {
     var sql = """
-        SELECT broadcasts.utc_time, broadcasts.channel, songs.artist, songs.title, songs.album
-        FROM broadcasts
-        JOIN songs ON broadcasts.song_id = songs.id
-        ORDER BY broadcasts.utc_time DESC, broadcasts.id DESC
+        SELECT b.utc_time, b.channel, s.id, s.artist, s.title, s.album
+        FROM broadcasts b
+        JOIN songs s ON b.song_id = s.id
+        ORDER BY b.utc_time DESC, b.id DESC
         LIMIT ? OFFSET ?;""";
     int offset = (page - 1) * size;
     List<Broadcast> broadcasts = new ArrayList<>();
@@ -58,10 +55,8 @@ public class SqlBroadcastRepository implements BroadcastRepository {
         PreparedStatement statement = connection.prepareStatement(sql)) {
       statement.setInt(1, size);
       statement.setInt(2, offset);
-      try (ResultSet resultSet = statement.executeQuery()) {
-        while (resultSet.next()) {
-          broadcasts.add(mapBroadcast(resultSet));
-        }
+      try (ResultSet rs = statement.executeQuery()) {
+        while (rs.next()) broadcasts.add(mapBroadcast(rs));
       }
       return broadcasts;
     } catch (SQLException e) {
@@ -97,7 +92,7 @@ public class SqlBroadcastRepository implements BroadcastRepository {
         PreparedStatement statement = connection.prepareStatement(sql)) {
       for (Broadcast broadcast : broadcasts) {
         Song song = broadcast.song();
-        String artistName = (song.artist() == null || song.artist().name() == null) ? "n/a" : song.artist().name();
+        String artistName = song.artist() == null ? "n/a" : song.artist();
         String albumName = song.album() == null ? "n/a" : song.album();
         statement.setString(1, artistName);
         statement.setString(2, song.title());
@@ -115,18 +110,19 @@ public class SqlBroadcastRepository implements BroadcastRepository {
     }
   }
 
-  private Broadcast mapBroadcast(ResultSet resultSet) throws SQLException {
-    String channelName = resultSet.getString("channel");
+  private Broadcast mapBroadcast(ResultSet rs) throws SQLException {
+    String channelName = rs.getString("channel");
     var channel = PredefinedChannel
         .getByPublicName(channelName)
         .orElseThrow(() -> new IllegalStateException("Unknown channel in database: " + channelName));
     return Broadcast.builder()
-        .time(resultSet.getTimestamp("utc_time").toInstant())
+        .time(rs.getTimestamp("utc_time").toInstant())
         .channel(channel)
         .song(Song.builder()
-            .artist(Artist.builder().name(resultSet.getString("artist")).build())
-            .title(resultSet.getString("title"))
-            .album(resultSet.getString("album"))
+            .id(rs.getLong("id"))
+            .artist(rs.getString("artist"))
+            .title(rs.getString("title"))
+            .album(rs.getString("album"))
             .build())
         .build();
   }

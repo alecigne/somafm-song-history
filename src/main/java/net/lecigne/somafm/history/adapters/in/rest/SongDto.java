@@ -1,12 +1,11 @@
 package net.lecigne.somafm.history.adapters.in.rest;
 
-import net.lecigne.somafm.recentlib.Song;
+import net.lecigne.somafm.history.domain.model.Song;
 
-record SongDto(String artist, String title, String album) {
+record SongDto(Long id, String artist, String title, String album) {
 
   static SongDto from(Song song) {
-    String artistName = song.artist() == null ? null : song.artist().name();
-    return new SongDto(artistName, song.title(), song.album());
+    return new SongDto(song.id(), song.artist(), song.title(), song.album());
   }
 
 }

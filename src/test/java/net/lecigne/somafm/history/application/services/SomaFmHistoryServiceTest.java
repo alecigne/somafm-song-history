@@ -6,12 +6,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import net.lecigne.somafm.history.application.ports.out.BroadcastRepository;
 import net.lecigne.somafm.history.application.ports.out.SongRepository;
-import net.lecigne.somafm.history.domain.model.Page;
-import net.lecigne.somafm.history.fixtures.Fxt;
-import net.lecigne.somafm.recentlib.Broadcast;
-import net.lecigne.somafm.recentlib.Song;
+import net.lecigne.somafm.history.application.model.Page;
+import net.lecigne.somafm.history.domain.model.Broadcast;
+import net.lecigne.somafm.history.domain.model.Song;
+import net.lecigne.somafm.history.domain.model.SongDetails;
+import net.lecigne.somafm.history.fixtures.Fixtures;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,8 +45,8 @@ class SomaFmHistoryServiceTest {
       var page = 1;
       var size = 2;
       List<Broadcast> broadcastsInPage = List.of(
-          broadcastAt("2021-01-01T11:00:00.00Z", Fxt.dirkSerriesSix()),
-          broadcastAt("2021-01-01T11:10:00.00Z", Fxt.igneousFlameIncandescentArc()));
+          broadcastAt("2021-01-01T11:00:00.00Z", Fixtures.dirkSerriesSix()),
+          broadcastAt("2021-01-01T11:10:00.00Z", Fixtures.igneousFlameIncandescentArc()));
       broadcastRepo.broadcastsInPage = broadcastsInPage;
 
       var numberOfPages = 9; // 17 results, 2 per page -> 8 full pages + 1 extra page
@@ -74,6 +76,20 @@ class SomaFmHistoryServiceTest {
           .hasMessage(errMsg);
     }
 
+    @Test
+    void should_get_song_details() {
+      // Given
+      SongDetails details = new SongDetails(Fixtures.dirkSerriesSix(), List.of());
+      songRepo.songDetails = Optional.of(details);
+
+      // When
+      Optional<SongDetails> result = service.getSongDetails(42L);
+
+      // Then
+      assertThat(result).contains(details);
+      assertThat(songRepo.receivedSongId).isEqualTo(42L);
+    }
+
   }
 
   @Nested
@@ -87,7 +103,7 @@ class SomaFmHistoryServiceTest {
 
       var page = 1;
       var size = 2;
-      List<Song> songsInPage = List.of(Fxt.dirkSerriesSix(), Fxt.igneousFlameIncandescentArc());
+      List<Song> songsInPage = List.of(Fixtures.dirkSerriesSix(), Fixtures.igneousFlameIncandescentArc());
       songRepo.songsInPage = songsInPage;
 
       var numberOfPages = 9; // 17 results, 2 per page -> 8 full pages + 1 extra page
@@ -149,6 +165,8 @@ class SomaFmHistoryServiceTest {
 
     private long totalNumberOfSongs;
     private List<Song> songsInPage = List.of();
+    private Long receivedSongId;
+    private Optional<SongDetails> songDetails = Optional.empty();
 
     @Override
     public long countSongs() {
@@ -160,9 +178,17 @@ class SomaFmHistoryServiceTest {
       return songsInPage;
     }
 
+    @Override
+    public Optional<SongDetails> getSong(long id) {
+      receivedSongId = id;
+      return songDetails;
+    }
+
     private void reset() {
       totalNumberOfSongs = 0;
       songsInPage = List.of();
+      receivedSongId = null;
+      songDetails = Optional.empty();
     }
 
   }

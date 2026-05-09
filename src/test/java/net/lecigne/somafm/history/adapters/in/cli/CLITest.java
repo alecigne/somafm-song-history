@@ -1,9 +1,9 @@
 package net.lecigne.somafm.history.adapters.in.cli;
 
 import static com.github.stefanbirkner.systemlambda.SystemLambda.tapSystemOut;
-import static net.lecigne.somafm.history.fixtures.Fxt.breakSongFixture;
-import static net.lecigne.somafm.history.fixtures.Fxt.dirkSerriesSix;
-import static net.lecigne.somafm.history.fixtures.Fxt.igneousFlameIncandescentArc;
+import static net.lecigne.somafm.history.fixtures.Fixtures.breakSongFixture;
+import static net.lecigne.somafm.history.fixtures.Fixtures.dirkSerriesSix;
+import static net.lecigne.somafm.history.fixtures.Fixtures.igneousFlameIncandescentArc;
 import static net.lecigne.somafm.recentlib.PredefinedChannel.DRONE_ZONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.argumentSet;
@@ -16,7 +16,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Stream;
 import net.lecigne.somafm.history.application.ports.in.RunCommandUseCase;
-import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.history.domain.model.Broadcast;
 import net.lecigne.somafm.recentlib.SomaFmException;
 import nl.altindag.log.LogCaptor;
 import org.junit.jupiter.api.AfterEach;

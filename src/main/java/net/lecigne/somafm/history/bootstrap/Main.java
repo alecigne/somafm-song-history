@@ -22,7 +22,7 @@ import net.lecigne.somafm.history.bootstrap.config.ConfigLoader;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.ApiConfig;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.DbConfig;
-import net.lecigne.somafm.history.domain.model.Mode;
+import net.lecigne.somafm.history.application.model.Mode;
 import net.lecigne.somafm.recentlib.SomaFm;
 import org.flywaydb.core.Flyway;
 
@@ -72,7 +72,7 @@ public class Main {
     if (apiConfig.isSchedulerEnabled()) {
       SaveScheduler.init(recentService, apiConfig.getScheduler());
     }
-    JavalinRestController controller = JavalinRestController.init(historyService, historyService, recentService);
+    JavalinRestController controller = JavalinRestController.init(historyService, historyService, historyService, recentService);
     Javalin
         .create(config -> {
           config.jsonMapper(new JavalinJackson().updateMapper(mapper -> {
