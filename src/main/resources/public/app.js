@@ -8,9 +8,12 @@ const state = {
   previousList: null
 };
 
+const viewSwitch = document.querySelector(".view-switch");
 const viewButtons = [...document.querySelectorAll(".view-button")];
 const summary = document.querySelector("#summary");
+const bottomBar = document.querySelector(".bottom-bar");
 const toolbar = document.querySelector(".toolbar");
+const backToListButton = document.querySelector("#back-to-list");
 const message = document.querySelector("#message");
 const firstPage = document.querySelector("#first-page");
 const previousPage = document.querySelector("#previous-page");
@@ -57,6 +60,8 @@ pageSize.addEventListener("change", () => {
   state.page = 1;
   void loadPage();
 });
+
+backToListButton.addEventListener("click", backToList);
 
 window.addEventListener("hashchange", () => {
   void route();
@@ -166,11 +171,25 @@ function clampPage(page) {
   return Math.min(Math.max(pageNumber, 1), state.totalPages);
 }
 
+function renderListNavigation() {
+  bottomBar.hidden = false;
+  viewSwitch.hidden = false;
+  toolbar.hidden = false;
+  backToListButton.hidden = true;
+}
+
+function renderSongNavigation() {
+  bottomBar.hidden = false;
+  viewSwitch.hidden = false;
+  toolbar.hidden = true;
+  backToListButton.hidden = false;
+}
+
 function renderShell() {
+  renderListNavigation();
   viewButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.view === state.view);
   });
-  toolbar.hidden = false;
   restoreListTable();
   clearTableCaption();
   tableHead.innerHTML = state.view === "broadcasts"
@@ -190,10 +209,10 @@ function renderLoading() {
 }
 
 function renderSongLoading() {
+  renderSongNavigation();
   viewButtons.forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.view === "songs");
+    button.classList.remove("is-active");
   });
-  toolbar.hidden = true;
   summary.textContent = "Loading song...";
   message.textContent = "Loading song...";
   message.classList.remove("is-error");
@@ -219,10 +238,10 @@ function renderPage(page) {
 }
 
 function renderSong(song) {
+  renderSongNavigation();
   summary.textContent = `${song.broadcasts?.length || 0} broadcasts for ${song.title || "song"}`;
   message.classList.remove("is-error");
-  message.innerHTML = `<button type="button" class="back-button" id="back-to-list">Back</button>`;
-  document.querySelector("#back-to-list").addEventListener("click", backToList);
+  message.textContent = "";
   const broadcasts = song.broadcasts || [];
   clearTableCaption();
   tableShell.classList.add("is-detail");
@@ -257,6 +276,7 @@ function renderSong(song) {
 }
 
 function renderSongError(error) {
+  renderSongNavigation();
   summary.textContent = "Could not load song.";
   message.textContent = error.message;
   message.classList.add("is-error");
