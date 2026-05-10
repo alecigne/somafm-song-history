@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.7.0](https://github.com/alecigne/somafm-song-history/tree/v0.7.0) - 2026-05-10
+
+Create the first version of an UI for browsing broadcasts, songs and song details.
+
 ## [v0.6.2](https://github.com/alecigne/somafm-song-history/tree/v0.6.2) - 2026-05-02
 
 Update dependencies.
