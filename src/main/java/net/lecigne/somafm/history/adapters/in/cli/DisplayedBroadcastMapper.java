@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import lombok.RequiredArgsConstructor;
-import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.history.domain.model.Broadcast;
 
 @RequiredArgsConstructor
 class DisplayedBroadcastMapper {
@@ -16,7 +16,7 @@ class DisplayedBroadcastMapper {
     return DisplayableBroadcast.builder()
         .time(LocalDateTime.ofInstant(broadcast.time(), zoneId).format(FORMATTER))
         .channel(broadcast.channel().publicName())
-        .artist(broadcast.song().artist() != null ? broadcast.song().artist().name() : null)
+        .artist(broadcast.song().artist())
         .title(broadcast.song().title())
         .build();
   }

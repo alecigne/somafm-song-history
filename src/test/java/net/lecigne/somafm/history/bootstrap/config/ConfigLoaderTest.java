@@ -10,7 +10,7 @@ import java.util.List;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.DbConfig;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.SchedulerConfig;
 import net.lecigne.somafm.history.bootstrap.config.SomaFmConfig.ApiConfig;
-import net.lecigne.somafm.history.domain.model.Mode;
+import net.lecigne.somafm.history.application.model.Mode;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

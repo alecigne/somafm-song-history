@@ -1,8 +1,7 @@
-package net.lecigne.somafm.history.domain;
+package net.lecigne.somafm.history.application.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import net.lecigne.somafm.history.domain.model.Mode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

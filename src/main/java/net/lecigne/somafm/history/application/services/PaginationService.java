@@ -1,12 +1,12 @@
-package net.lecigne.somafm.history.domain.services;
+package net.lecigne.somafm.history.application.services;
 
-public class PageRequestValidator {
+public class PaginationService {
 
   private static final int DEFAULT_MAX_PAGE_SIZE = 50;
 
   private final int maxPageSize;
 
-  public PageRequestValidator(int maxPageSize) {
+  public PaginationService(int maxPageSize) {
     if (maxPageSize <= 0) throw new IllegalArgumentException("maxPageSize must be > 0");
     this.maxPageSize = maxPageSize;
   }
@@ -17,8 +17,13 @@ public class PageRequestValidator {
     if (size > maxPageSize) throw new IllegalArgumentException("size must be <= " + maxPageSize);
   }
 
-  public static PageRequestValidator defaultValidator() {
-    return new PageRequestValidator(DEFAULT_MAX_PAGE_SIZE);
+  public int countPages(long nbElements, int pageSize) {
+    long numberOfPages = nbElements == 0 ? 0 : ((nbElements - 1) / pageSize) + 1;
+    return (int) Math.min(numberOfPages, Integer.MAX_VALUE);
+  }
+
+  public static PaginationService defaultValidator() {
+    return new PaginationService(DEFAULT_MAX_PAGE_SIZE);
   }
 
 }

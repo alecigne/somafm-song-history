@@ -8,10 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
-import net.lecigne.somafm.recentlib.Artist;
-import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.history.domain.model.Broadcast;
+import net.lecigne.somafm.history.domain.model.Song;
 import net.lecigne.somafm.recentlib.PredefinedChannel;
-import net.lecigne.somafm.recentlib.Song;
 
 @RequiredArgsConstructor
 public class TestRepository {
@@ -20,27 +19,22 @@ public class TestRepository {
 
   public List<Broadcast> readAllBroadcasts() throws IOException {
     var sql = """
-        SELECT utc_time, channel, artist, title, album FROM broadcasts
-        JOIN songs on broadcasts.song_id = songs.id
-        ORDER BY utc_time DESC;""";
+        SELECT b.utc_time, b.channel, s.id, s.artist, s.title, s.album FROM broadcasts b
+        JOIN songs s on b.song_id = s.id
+        ORDER BY b.utc_time DESC;""";
     List<Broadcast> results = new ArrayList<>();
     try (Connection connection = testDataSource.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        ResultSet resultSet = preparedStatement.executeQuery()) {
-      while (resultSet.next()) {
-        var time = resultSet.getTimestamp(1);
-        var channel = resultSet.getString(2);
-        var artist = resultSet.getString(3);
-        var title = resultSet.getString(4);
-        var album = resultSet.getString(5);
-        var broadcast = Broadcast.builder()
-            .time(time.toInstant())
-            .channel(PredefinedChannel.getByPublicName(channel).orElseThrow())
-            .song(Song.builder()
-                .artist(Artist.builder().name(artist).build())
-                .title(title)
-                .album(album)
-                .build()).build();
+        ResultSet rs = preparedStatement.executeQuery()) {
+      while (rs.next()) {
+        var time = rs.getTimestamp(1);
+        var channel = rs.getString(2);
+        var songId = rs.getLong(3);
+        var artist = rs.getString(4);
+        var title = rs.getString(5);
+        var album = rs.getString(6);
+        var song = new Song(songId, artist, title, album);
+        var broadcast = new Broadcast(PredefinedChannel.getByPublicName(channel).orElseThrow(), time.toInstant(), song);
         results.add(broadcast);
       }
     } catch (Exception e) {
@@ -60,7 +54,7 @@ public class TestRepository {
         var title = resultSet.getString(2);
         var album = resultSet.getString(3);
         var song = Song.builder()
-            .artist(Artist.builder().name(artist).build())
+            .artist(artist)
             .title(title)
             .album(album)
             .build();

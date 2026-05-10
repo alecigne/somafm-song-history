@@ -1,7 +1,7 @@
 package net.lecigne.somafm.history.application.ports.out;
 
 import java.util.List;
-import net.lecigne.somafm.recentlib.Broadcast;
+import net.lecigne.somafm.history.domain.model.Broadcast;
 
 public interface BroadcastRepository {
   long countBroadcasts();
