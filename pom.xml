@@ -15,7 +15,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.testing.version>3.5.5</maven.testing.version>
-    <flyway.version>12.5.0</flyway.version>
+    <flyway.version>12.6.0</flyway.version>
     <maven.compiler.version>3.15.0</maven.compiler.version>
     <lombok.version>1.18.46</lombok.version>
   </properties>
@@ -102,7 +102,7 @@
     <dependency>
       <groupId>com.typesafe</groupId>
       <artifactId>config</artifactId>
-      <version>1.4.7</version>
+      <version>1.4.8</version>
     </dependency>
     <!-- Logging -->
     <dependency>
