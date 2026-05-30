@@ -36,15 +36,30 @@ public class SaveScheduler {
       Runnable runnable = () -> saveSafe(channel);
       long initialDelay = delayInSeconds * i;
       executorService.scheduleAtFixedRate(runnable, initialDelay, periodInSeconds, TimeUnit.SECONDS);
-      log.info("Scheduled save for channel {} every {} seconds with delay {}", channel.publicName(), periodInSeconds, initialDelay);
+      log.atInfo()
+          .addKeyValue("operation", "scheduler.schedule")
+          .addKeyValue("channel", channel.publicName())
+          .addKeyValue("period_seconds", periodInSeconds)
+          .addKeyValue("initial_delay_seconds", initialDelay)
+          .log("Scheduled channel save");
     });
   }
 
   private void saveSafe(Channel channel) {
     try {
       saveRecentBroadcastsUseCase.saveRecent(channel);
+      log.atInfo()
+          .addKeyValue("operation", "scheduler.save")
+          .addKeyValue("channel", channel.publicName())
+          .addKeyValue("outcome", "success")
+          .log("Scheduled channel save completed");
     } catch (Exception e) {
-      log.error("Error while running scheduled save for channel {}", channel.publicName(), e);
+      log.atError()
+          .addKeyValue("operation", "scheduler.save")
+          .addKeyValue("channel", channel.publicName())
+          .addKeyValue("outcome", "failure")
+          .setCause(e)
+          .log("Error while running scheduled channel save");
     }
   }
 

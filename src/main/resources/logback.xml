@@ -1,10 +1,44 @@
 <configuration>
-  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+
+  <!-- Text appender -->
+  <appender name="TEXT_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+      <!-- Introduce KVP from structured logging + MDC only if not empty -->
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%replace(%kvp){'^(.+)$',' [fields -> $1]'}%replace(%X){'^(.+)$',' [mdc -> $1]'}%n</pattern>
     </encoder>
   </appender>
-  <root level="INFO">
-    <appender-ref ref="CONSOLE"/>
-  </root>
+
+  <!-- JSON appender -->
+  <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+      <customFields>{"service":"somafm-song-history","environment":"${APP_ENV:-local}"}</customFields>
+      <fieldNames>
+        <timestamp>timestamp</timestamp>
+        <level>level</level>
+        <logger>logger</logger>
+        <thread>thread</thread>
+        <message>message</message>
+        <stackTrace>exception</stackTrace>
+      </fieldNames>
+    </encoder>
+  </appender>
+
+  <!-- Logging format by env -->
+  <condition class="ch.qos.logback.core.boolex.PropertyEqualityCondition">
+    <key>LOG_FORMAT</key>
+    <value>json</value>
+  </condition>
+  <if>
+    <then>
+      <root level="INFO">
+        <appender-ref ref="JSON_CONSOLE"/>
+      </root>
+    </then>
+    <else>
+      <root level="INFO">
+        <appender-ref ref="TEXT_CONSOLE"/>
+      </root>
+    </else>
+  </if>
+
 </configuration>

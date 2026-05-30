@@ -36,7 +36,10 @@ public class SqlBroadcastRepository implements BroadcastRepository {
       if (rs.next()) return rs.getLong(1);
       return 0;
     } catch (SQLException e) {
-      log.error("Error while counting broadcasts", e);
+      log.atError()
+          .addKeyValue("operation", "db.broadcast.count")
+          .setCause(e)
+          .log("Error while counting broadcasts");
       throw new IllegalStateException("Could not count broadcasts in database", e);
     }
   }
@@ -60,7 +63,12 @@ public class SqlBroadcastRepository implements BroadcastRepository {
       }
       return broadcasts;
     } catch (SQLException e) {
-      log.error("Error while reading broadcasts page {} with size {}", page, size, e);
+      log.atError()
+          .addKeyValue("operation", "db.broadcast.read_page")
+          .addKeyValue("page", page)
+          .addKeyValue("size", size)
+          .setCause(e)
+          .log("Error while reading broadcasts page");
       throw new IllegalStateException("Could not read broadcasts from database", e);
     }
   }
@@ -106,7 +114,12 @@ public class SqlBroadcastRepository implements BroadcastRepository {
       }
       statement.executeBatch();
     } catch (SQLException e) {
-      log.error("Error", e);
+      log.atError()
+          .addKeyValue("operation", "db.broadcast.update")
+          .addKeyValue("count", broadcasts.size())
+          .setCause(e)
+          .log("Error while updating broadcasts");
+      throw new IllegalStateException("Could not update broadcasts in database", e);
     }
   }
 
