@@ -18,6 +18,7 @@
     <flyway.version>12.5.0</flyway.version>
     <maven.compiler.version>3.15.0</maven.compiler.version>
     <lombok.version>1.18.46</lombok.version>
+    <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version>
   </properties>
 
   <repositories>
@@ -109,6 +110,11 @@
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <version>1.5.32</version>
+    </dependency>
+    <dependency>
+      <groupId>net.logstash.logback</groupId>
+      <artifactId>logstash-logback-encoder</artifactId>
+      <version>${logstash-logback-encoder.version}</version>
     </dependency>
     <!-- Testing -->
     <dependency>

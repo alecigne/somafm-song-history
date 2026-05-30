@@ -25,7 +25,11 @@ public class SomaFmRecentService implements FetchRecentBroadcastsUseCase, SaveRe
   public List<Broadcast> saveRecent(Channel channel) {
     List<Broadcast> recentBroadcasts = somaFmRepo.fetchRecentBroadcasts(channel);
     broadcastRepo.updateBroadcasts(recentBroadcasts);
-    log.info("Saved {} last broadcasts from channel {}", recentBroadcasts.size(), channel.publicName());
+    log.atInfo()
+        .addKeyValue("operation", "recent.save")
+        .addKeyValue("channel", channel.publicName())
+        .addKeyValue("count", recentBroadcasts.size())
+        .log("Saved recent broadcasts");
     return recentBroadcasts;
   }
 
@@ -36,7 +40,11 @@ public class SomaFmRecentService implements FetchRecentBroadcastsUseCase, SaveRe
         .stream()
         .sorted(Comparator.comparing(Broadcast::time).reversed())
         .toList();
-    log.info("Fetched {} last broadcasts from channel {}", recentBroadcasts.size(), channel.publicName());
+    log.atInfo()
+        .addKeyValue("operation", "recent.fetch")
+        .addKeyValue("channel", channel.publicName())
+        .addKeyValue("count", recentBroadcasts.size())
+        .log("Fetched recent broadcasts");
     return recentBroadcasts;
   }
 
