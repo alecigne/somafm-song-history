@@ -1,0 +1,8 @@
+*
+!Containerfile
+!target/
+!target/somafm-song-history-with-dependencies.jar
+!src/
+!src/main/
+!src/main/resources/
+!src/main/resources/application.conf
