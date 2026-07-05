@@ -33,7 +33,7 @@ jobs:
           cache: maven
 
       - name: Run unit tests
-        run: ./mvnw -B --update-snapshots test
+        run: ./mvnw -B --no-transfer-progress test
 
   # Run integration tests only. Compile tests first, run them, then verify.
   integration-tests:
@@ -53,7 +53,7 @@ jobs:
           cache: maven
 
       - name: Run integration tests
-        run: ./mvnw -B --update-snapshots test-compile failsafe:integration-test failsafe:verify
+        run: ./mvnw -B --no-transfer-progress test-compile failsafe:integration-test failsafe:verify
 
   # Package application, skipping tests since they've been run above.
   # This job also uploads the packaged JAR as an artifact for later use in the image job.
@@ -78,7 +78,7 @@ jobs:
           cache: maven
 
       - name: Package application
-        run: ./mvnw -B --update-snapshots -Dmaven.test.skip=true package
+        run: ./mvnw -B --no-transfer-progress -Dmaven.test.skip=true package
 
       - name: Upload packaged JAR
         id: upload-jar
