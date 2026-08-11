@@ -37,7 +37,10 @@ public class SqlSongRepository implements SongRepository {
       if (resultSet.next()) return resultSet.getLong(1);
       return 0;
     } catch (SQLException e) {
-      log.error("Error while counting songs", e);
+      log.atError()
+          .addKeyValue("operation", "db.song.count")
+          .setCause(e)
+          .log("Error while counting songs");
       throw new IllegalStateException("Could not count songs in database", e);
     }
   }
@@ -62,7 +65,12 @@ public class SqlSongRepository implements SongRepository {
       }
       return songs;
     } catch (SQLException e) {
-      log.error("Error while reading songs page {} with size {}", page, size, e);
+      log.atError()
+          .addKeyValue("operation", "db.song.read_page")
+          .addKeyValue("page", page)
+          .addKeyValue("size", size)
+          .setCause(e)
+          .log("Error while reading songs page");
       throw new IllegalStateException("Could not read songs from database", e);
     }
   }
@@ -100,7 +108,11 @@ public class SqlSongRepository implements SongRepository {
         return Optional.of(new SongDetails(song, broadcasts));
       }
     } catch (SQLException e) {
-      log.error("Error while reading song {}", id, e);
+      log.atError()
+          .addKeyValue("operation", "db.song.read")
+          .addKeyValue("song_id", id)
+          .setCause(e)
+          .log("Error while reading song");
       throw new IllegalStateException("Could not read song from database", e);
     }
   }

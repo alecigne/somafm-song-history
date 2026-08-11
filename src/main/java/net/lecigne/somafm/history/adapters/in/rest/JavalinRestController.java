@@ -1,7 +1,9 @@
 package net.lecigne.somafm.history.adapters.in.rest;
 
+import static io.javalin.apibuilder.ApiBuilder.after;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
+import static io.javalin.apibuilder.ApiBuilder.before;
 
 import io.javalin.apibuilder.EndpointGroup;
 import io.javalin.http.BadRequestResponse;
@@ -108,6 +110,8 @@ public class JavalinRestController {
 
   public EndpointGroup routes() {
     return () -> {
+      before(HttpRequestLogging::start);
+      after(HttpRequestLogging::finish);
       path("broadcasts", () -> {
         get(this::getBroadcasts);
         get("recent", this::fetchRecentBroadcasts);

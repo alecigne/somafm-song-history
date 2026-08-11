@@ -31,10 +31,16 @@ public class Main {
 
   public static void main(String[] args) {
     if (args.length == 0) {
-      log.error("You must enter at least 1 argument: mode.");
+      log.atError()
+          .addKeyValue("operation", "app.start")
+          .log("You must enter at least 1 argument: mode.");
       return;
     }
     Mode mode = Mode.getValue(args[0]);
+    log.atInfo()
+        .addKeyValue("operation", "app.start")
+        .addKeyValue("mode", mode.name())
+        .log("Starting application");
     SomaFmConfig somaFmConfig = ConfigLoader.loadForMode(mode);
     SomaFm somaFmClient = SomaFm.of(somaFmConfig.getUserAgent());
     SomaFmRepository somaFmRepo = HtmlSomaFmRepository.init(somaFmClient);
@@ -83,7 +89,10 @@ public class Main {
           config.routes.apiBuilder(controller.routes());
         })
         .start(apiConfig.getPort());
-    log.info("API server started on port {}", apiConfig.getPort());
+    log.atInfo()
+        .addKeyValue("operation", "api.start")
+        .addKeyValue("port", apiConfig.getPort())
+        .log("API server started");
   }
 
   private static void initDb(SomaFmConfig somaFmConfig) {

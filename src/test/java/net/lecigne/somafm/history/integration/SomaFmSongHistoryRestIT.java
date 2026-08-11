@@ -19,6 +19,7 @@ import io.restassured.specification.RequestSpecification;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import net.lecigne.somafm.history.adapters.in.rest.HttpRequestLogging;
 import net.lecigne.somafm.history.adapters.in.rest.JavalinRestController;
 import net.lecigne.somafm.history.application.model.Page;
 import net.lecigne.somafm.history.application.ports.in.FetchRecentBroadcastsUseCase;
@@ -30,6 +31,7 @@ import net.lecigne.somafm.history.domain.model.Song;
 import net.lecigne.somafm.history.domain.model.SongBroadcast;
 import net.lecigne.somafm.history.domain.model.SongDetails;
 import net.lecigne.somafm.recentlib.Channel;
+import nl.altindag.log.LogCaptor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -127,6 +129,42 @@ class SomaFmSongHistoryRestIT {
     response.then().statusCode(200);
     assertThat(getBroadcastsUseCase.receivedPage).isEqualTo(1);
     assertThat(getBroadcastsUseCase.receivedSize).isEqualTo(50);
+  }
+
+  @Test
+  void should_propagate_request_id_and_log_request_completion() {
+    // Given
+    String requestId = "test-request-id";
+    RequestSpecification req = given()
+        .port(port)
+        .header("X-Request-Id", requestId);
+
+    try (LogCaptor logCaptor = LogCaptor.forClass(HttpRequestLogging.class)) {
+      // When
+      Response response = req.get("/broadcasts");
+
+      // Then
+      response.then()
+          .statusCode(200)
+          .header("X-Request-Id", requestId);
+      assertThat(logCaptor.getInfoLogs()).contains("HTTP request completed");
+    }
+  }
+
+  @Test
+  void should_generate_request_id_when_header_is_missing() {
+    // Given
+    RequestSpecification req = given().port(port);
+
+    // When
+    Response response = req.get("/broadcasts");
+
+    // Then
+    String requestId = response.then()
+        .statusCode(200)
+        .extract()
+        .header("X-Request-Id");
+    assertThat(requestId).isNotBlank();
   }
 
   @Test

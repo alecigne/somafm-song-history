@@ -94,6 +94,21 @@ Then pass the config to Podman with your chosen mode:
 podman run -d --network=host -v /path/to/application.conf:/application.conf docker.io/alecigne/somafm-song-history:latest "api"
 ```
 
+## Logging
+
+Local runs use human-readable text logs by default. Container images set `LOG_FORMAT=json` so logs
+are structured for collectors such as Grafana Loki.
+
+You can override the format explicitly:
+
+``` shell
+LOG_FORMAT=json java -jar somafm-song-history.jar "api"
+LOG_FORMAT=text java -jar somafm-song-history.jar "api"
+```
+
+JSON logs include `service=somafm-song-history` and `environment`, which defaults to `local` and
+can be set with `APP_ENV`.
+
 ## Cleaning up after your tests
 
 To stop and remove the API container:
