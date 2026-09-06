@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.7.2](https://github.com/alecigne/somafm-song-history/tree/v0.7.2) - 2026-09-06
+
+Update dependencies.
+
 ## [v0.7.1](https://github.com/alecigne/somafm-song-history/tree/v0.7.1) - 2026-07-05
 
 - Update dependencies including `somafm-recentlib` (v0.2.4)
