@@ -17,10 +17,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Test and package
+  unit-tests:
+    name: Unit tests
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
 
     steps:
       - name: Check out repository
@@ -39,8 +39,88 @@ jobs:
       - name: Run unit tests
         run: just unit-test
 
+  integration-tests:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Set up Just
+        uses: extractions/setup-just@v4
+
       - name: Run integration tests
         run: just integration-test
 
+  package:
+    name: Package application
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs:
+      - unit-tests
+      - integration-tests
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Set up Just
+        uses: extractions/setup-just@v4
+
       - name: Package application
         run: just package
+
+      - name: Upload packaged application
+        uses: actions/upload-artifact@v7
+        with:
+          name: application-jar
+          path: target/somafm-song-history-with-dependencies.jar
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+  image:
+    name: Build container image
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: package
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Download packaged application
+        uses: actions/download-artifact@v7
+        with:
+          name: application-jar
+          path: target
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build container image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Containerfile
+          push: false
+          load: true
+          tags: somafm-song-history:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
