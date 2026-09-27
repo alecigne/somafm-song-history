@@ -131,6 +131,5 @@ jobs:
           tags: |
             docker.io/alecigne/somafm-song-history:${{ github.sha }}
             docker.io/alecigne/somafm-song-history:dev
-            docker.io/alecigne/somafm-song-history:develop
           cache-from: type=gha
           cache-to: type=gha,mode=max
