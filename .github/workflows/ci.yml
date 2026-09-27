@@ -114,13 +114,23 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
+      - name: Log in to Docker Hub
+        if: github.event_name == 'push'
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build container image
         uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Containerfile
-          push: false
-          load: true
-          tags: somafm-song-history:ci
+          push: ${{ github.event_name == 'push' }}
+          load: ${{ github.event_name == 'pull_request' }}
+          tags: |
+            docker.io/alecigne/somafm-song-history:${{ github.sha }}
+            docker.io/alecigne/somafm-song-history:dev
+            docker.io/alecigne/somafm-song-history:develop
           cache-from: type=gha
           cache-to: type=gha,mode=max
