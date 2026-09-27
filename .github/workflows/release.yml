@@ -1,0 +1,223 @@
+---
+name: Release
+run-name: >-
+  Release ${{ inputs.increment }}
+  from ${{ github.ref_name }} at ${{ github.sha }}
+
+"on":
+  workflow_dispatch:
+    inputs:
+      increment:
+        description: Semantic version increment
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Prepare release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+      commit_image: ${{ steps.release.outputs.commit_image }}
+      version_image: ${{ steps.release.outputs.version_image }}
+      latest_image: ${{ steps.release.outputs.latest_image }}
+
+    steps:
+      - name: Check out release commit
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Validate release source
+        env:
+          RELEASE_INCREMENT: ${{ inputs.increment }}
+        run: |
+          case "$GITHUB_REF" in
+            refs/heads/main)
+              ;;
+            refs/heads/release/*)
+              if [[ "$RELEASE_INCREMENT" != patch ]]; then
+                echo "::error::Release branches only support patch releases."
+                exit 1
+              fi
+              ;;
+            *)
+              echo "::error::Releases must run from main or release/**."
+              exit 1
+              ;;
+          esac
+
+      - name: Generate release version
+        id: release
+        env:
+          IMAGE_NAME: docker.io/alecigne/somafm-song-history
+          RELEASE_INCREMENT: ${{ inputs.increment }}
+        run: |
+          latest_tag=$(
+            git tag --list --sort=-version:refname |
+              sed -nE \
+                '/^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/{p;q;}'
+          )
+          if [[ -z "$latest_tag" ]]; then
+            echo "::error::No semantic version tag was found."
+            exit 1
+          fi
+
+          existing_tag=$(
+            git tag --points-at "$GITHUB_SHA" |
+              sed -nE \
+                '/^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/{p;q;}'
+          )
+          if [[ -n "$existing_tag" ]]; then
+            echo "::error::Commit $GITHUB_SHA is already released" \
+              "as $existing_tag."
+            exit 1
+          fi
+
+          IFS=. read -r major minor patch <<< "${latest_tag#v}"
+          case "$RELEASE_INCREMENT" in
+            patch)
+              patch=$((patch + 1))
+              ;;
+            minor)
+              minor=$((minor + 1))
+              patch=0
+              ;;
+            major)
+              major=$((major + 1))
+              minor=0
+              patch=0
+              ;;
+          esac
+          release_tag="v${major}.${minor}.${patch}"
+
+          if git show-ref --verify --quiet "refs/tags/$release_tag"; then
+            echo "::error::Tag $release_tag already exists."
+            exit 1
+          fi
+
+          {
+            echo "tag=$release_tag"
+            echo "commit_image=$IMAGE_NAME:$GITHUB_SHA"
+            echo "version_image=$IMAGE_NAME:$release_tag"
+            echo "latest_image=$IMAGE_NAME:latest"
+          } >> "$GITHUB_OUTPUT"
+
+  package:
+    name: Package release JAR
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: prepare
+    env:
+      RELEASE_JAR: somafm-song-history-${{ needs.prepare.outputs.tag }}.jar
+
+    steps:
+      - name: Check out release commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Set up Just
+        uses: extractions/setup-just@v4
+
+      - name: Package release JAR
+        run: just package
+
+      - name: Name release JAR
+        run: >-
+          mv target/somafm-song-history-with-dependencies.jar
+          "target/$RELEASE_JAR"
+
+      - name: Upload release JAR
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-jar
+          path: target/${{ env.RELEASE_JAR }}
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+  release:
+    name: Publish release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs:
+      - prepare
+      - package
+    permissions:
+      contents: write
+    env:
+      RELEASE_JAR: somafm-song-history-${{ needs.prepare.outputs.tag }}.jar
+
+    steps:
+      - name: Download release JAR
+        uses: actions/download-artifact@v7
+        with:
+          name: release-jar
+          path: dist
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Verify release candidate
+        run: >-
+          docker buildx imagetools inspect
+          "${{ needs.prepare.outputs.commit_image }}"
+
+      - name: Check version image is unused
+        env:
+          VERSION_IMAGE: ${{ needs.prepare.outputs.version_image }}
+        run: |
+          if docker buildx imagetools inspect "$VERSION_IMAGE" \
+            > /dev/null 2>&1
+          then
+            echo "::error::Image $VERSION_IMAGE already exists."
+            exit 1
+          fi
+
+      - name: Promote release image
+        run: >-
+          docker buildx imagetools create
+          --prefer-index=false
+          --tag "${{ needs.prepare.outputs.version_image }}"
+          --tag "${{ needs.prepare.outputs.latest_image }}"
+          "${{ needs.prepare.outputs.commit_image }}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+        run: >-
+          gh release create "$RELEASE_TAG"
+          "dist/$RELEASE_JAR"
+          --repo "$GITHUB_REPOSITORY"
+          --target "$GITHUB_SHA"
+          --title "$RELEASE_TAG"
+          --generate-notes
+          --latest

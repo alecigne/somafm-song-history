@@ -5,12 +5,17 @@ name: CI
   push:
     branches:
       - main
+      - "release/**"
   pull_request:
     branches:
       - main
 
 permissions:
   contents: read
+
+env:
+  IMAGE_NAME: docker.io/alecigne/somafm-song-history
+  DEV_IMAGE: docker.io/alecigne/somafm-song-history:dev
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -129,7 +134,7 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           load: ${{ github.event_name == 'pull_request' }}
           tags: |
-            docker.io/alecigne/somafm-song-history:${{ github.sha }}
-            docker.io/alecigne/somafm-song-history:dev
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ github.ref == 'refs/heads/main' && env.DEV_IMAGE || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
