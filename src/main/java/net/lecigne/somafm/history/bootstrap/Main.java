@@ -73,7 +73,7 @@ public class Main {
       SaveScheduler.init(recentService, apiConfig.getScheduler());
     }
     JavalinRestController controller = JavalinRestController.init(historyService, historyService, historyService, recentService);
-    Javalin
+    Javalin app = Javalin
         .create(config -> {
           config.jsonMapper(new JavalinJackson().updateMapper(mapper -> {
             mapper.registerModule(new JavaTimeModule());
@@ -83,6 +83,7 @@ public class Main {
           config.routes.apiBuilder(controller.routes());
         })
         .start(apiConfig.getPort());
+    Runtime.getRuntime().addShutdownHook(new Thread(app::stop, "javalin-shutdown"));
     log.info("API server started on port {}", apiConfig.getPort());
   }
 
