@@ -17,11 +17,7 @@ This program is primarily meant to be self-hosted as a container. I personally u
 Quadlet for this. Below, you will find Podman commands you can run to get started; they should work
 with Docker as well.
 
-The images are hosted on [DockerHub][dockerhub]:
-
-- `latest` is the latest stable version (`master` branch).
-- `vX.Y.Z` are immutable snapshots of a given version.
-- `develop` is the latest development version (`develop` branch).
+The published image is hosted on [DockerHub][dockerhub] and is available with the `latest` tag.
 
 `somafm-song-history` can be used in 3 different modes. API mode is the main mode; the other two
 modes below are historical. I keep them... because I can! :)
@@ -31,7 +27,7 @@ modes below are historical. I keep them... because I can! :)
 This mode runs a Javalin server that exposes a REST API. The application runs continuously and
 update its database regularly for a given set of channels, according to the config.
 
-Starting from v0.7.0, it also serves a simple UI to browse saved broadcasts and songs:
+It also serves a simple UI to browse saved broadcasts and songs:
 
 <p align="center">
   <img src="doc/ui.jpg" alt="SomaFM Song History web UI" width="75%">
@@ -159,7 +155,7 @@ https://github.com/alecigne/somafm-song-history/releases
 https://lecigne.net/notes/postgres-docker.html
 
 [config]:
-https://github.com/alecigne/somafm-song-history/blob/master/src/main/resources/application.conf
+https://github.com/alecigne/somafm-song-history/blob/main/src/main/resources/application.conf
 
 [jitpack]:
 https://jitpack.io/
