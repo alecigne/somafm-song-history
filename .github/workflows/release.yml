@@ -167,7 +167,9 @@ jobs:
     permissions:
       contents: write
     env:
+      DOCKERHUB_TAGS_URL: https://hub.docker.com/r/alecigne/somafm-song-history/tags
       RELEASE_JAR: somafm-song-history-${{ needs.prepare.outputs.tag }}.jar
+      VERSION_IMAGE: ${{ needs.prepare.outputs.version_image }}
 
     steps:
       - name: Download release JAR
@@ -219,5 +221,6 @@ jobs:
           --repo "$GITHUB_REPOSITORY"
           --target "$GITHUB_SHA"
           --title "$RELEASE_TAG"
+          --notes "Docker image: [$VERSION_IMAGE]($DOCKERHUB_TAGS_URL?name=$RELEASE_TAG)"
           --generate-notes
           --latest
