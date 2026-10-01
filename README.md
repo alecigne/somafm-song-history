@@ -2,6 +2,7 @@
 
 [![CI][ci-badge]][ci]
 [![Latest release][release-badge]][latest-release]
+[![Coverage][coverage-badge]][coverage-report]
 [![Docker Hub][dockerhub-badge]][dockerhub]
 
 # About
@@ -130,6 +131,12 @@ or
 java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "save" "Drone Zone"
 ```
 
+
+[coverage-report]:
+https://alecigne.github.io/somafm-song-history/
+
+[coverage-badge]:
+https://alecigne.github.io/somafm-song-history/badge.svg
 
 [ci-badge]:
 https://github.com/alecigne/somafm-song-history/actions/workflows/ci.yml/badge.svg?branch=main&event=push

@@ -242,4 +242,55 @@
     </plugins>
   </build>
 
+  <profiles>
+    <profile>
+      <id>coverage</id>
+      <properties>
+        <jacoco.version>0.8.15</jacoco.version>
+        <jacocoArgLine></jacocoArgLine>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco.version}</version>
+            <configuration>
+              <propertyName>jacocoArgLine</propertyName>
+              <append>false</append>
+              <fileSets>
+                <fileSet>
+                  <directory>${project.build.directory}/coverage</directory>
+                  <includes>
+                    <include>unit.exec</include>
+                    <include>integration.exec</include>
+                  </includes>
+                </fileSet>
+              </fileSets>
+              <formats>
+                <format>HTML</format>
+                <format>XML</format>
+                <format>CSV</format>
+              </formats>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <argLine>@{jacocoArgLine}</argLine>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <argLine>@{jacocoArgLine} -Dfile.encoding=UTF-8</argLine>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
 </project>
