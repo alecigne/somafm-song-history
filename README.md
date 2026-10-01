@@ -1,5 +1,9 @@
 # `somafm-song-history`
 
+[![CI][ci-badge]][ci]
+[![Latest release][release-badge]][latest-release]
+[![Docker Hub][dockerhub-badge]][dockerhub]
+
 # About
 
 `somafm-song-history` is an archive of [SomaFM][soma]'s recently played songs.
@@ -126,6 +130,21 @@ or
 java -jar -Dconfig.file=/path/to/application.conf somafm-song-history.jar "save" "Drone Zone"
 ```
 
+
+[ci-badge]:
+https://github.com/alecigne/somafm-song-history/actions/workflows/ci.yml/badge.svg?branch=main&event=push
+
+[ci]:
+https://github.com/alecigne/somafm-song-history/actions/workflows/ci.yml?query=branch%3Amain+event%3Apush
+
+[release-badge]:
+https://img.shields.io/github/v/release/alecigne/somafm-song-history?label=release
+
+[latest-release]:
+https://github.com/alecigne/somafm-song-history/releases/latest
+
+[dockerhub-badge]:
+https://img.shields.io/badge/Docker_Hub-image-2496ED?logo=docker&logoColor=white
 
 [soma]:
 https://somafm.com
