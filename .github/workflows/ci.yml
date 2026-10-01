@@ -68,7 +68,15 @@ jobs:
         uses: extractions/setup-just@v4
 
       - name: Run unit tests
-        run: just unit-test
+        run: just unit-test-coverage
+
+      - name: Upload unit coverage data
+        uses: actions/upload-artifact@v7
+        with:
+          name: unit-coverage-data
+          path: target/coverage/unit.exec
+          if-no-files-found: error
+          retention-days: 1
 
   integration-tests:
     name: Integration tests
@@ -90,7 +98,92 @@ jobs:
         uses: extractions/setup-just@v4
 
       - name: Run integration tests
-        run: just integration-test
+        run: just integration-test-coverage
+
+      - name: Upload integration coverage data
+        uses: actions/upload-artifact@v7
+        with:
+          name: integration-coverage-data
+          path: target/coverage/integration.exec
+          if-no-files-found: error
+          retention-days: 1
+
+  coverage:
+    name: Combined coverage report
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs:
+      - unit-tests
+      - integration-tests
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Set up Just
+        uses: extractions/setup-just@v4
+
+      - name: Download coverage data
+        uses: actions/download-artifact@v7
+        with:
+          pattern: '*-coverage-data'
+          merge-multiple: true
+          path: target/coverage
+
+      - name: Generate combined report
+        run: just coverage-report
+
+      - name: Generate coverage badge
+        uses: cicirello/jacoco-badge-generator@v2
+        with:
+          badges-directory: target/site/jacoco
+          coverage-badge-filename: badge.svg
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: target/site/jacoco
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload GitHub Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: target/site/jacoco
+
+  coverage-pages:
+    name: Publish coverage to GitHub Pages
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: coverage
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+
+    steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Deploy coverage report
+        id: deployment
+        uses: actions/deploy-pages@v4
 
   package:
     name: Package application

@@ -6,8 +6,20 @@ local_image := "localhost/somafm-song-history:local"
 unit-test:
     {{maven}} test
 
+unit-test-coverage:
+    {{maven}} -Pcoverage -Djacoco.destFile=target/coverage/unit.exec clean jacoco:prepare-agent test
+
 integration-test:
     {{maven}} test-compile failsafe:integration-test failsafe:verify
+
+integration-test-coverage:
+    {{maven}} -Pcoverage -Djacoco.destFile=target/coverage/integration.exec jacoco:prepare-agent test-compile failsafe:integration-test failsafe:verify
+
+coverage-report:
+    test -s target/coverage/unit.exec && test -s target/coverage/integration.exec
+    {{maven}} -Pcoverage compile jacoco:merge jacoco:report
+
+coverage: unit-test-coverage integration-test-coverage coverage-report
 
 package:
     {{maven}} -Dmaven.test.skip=true package
